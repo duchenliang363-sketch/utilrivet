@@ -4,6 +4,7 @@ export interface Tool {
   description: string;
   category: string;
   status: "active" | "draft";
+  featured?: boolean;
 }
 
 export const tools: Tool[] = [
@@ -20,6 +21,7 @@ export const tools: Tool[] = [
     description: "Compare machinery quotations apples-to-apples.",
     category: "Operations",
     status: "active",
+    featured: true,
   },
 ];
 
