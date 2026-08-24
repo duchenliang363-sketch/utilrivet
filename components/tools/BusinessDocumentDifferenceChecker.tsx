@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { compareDocuments, type DiffResult, type DiffItem, type ChangeType } from "@/lib/doc-diff/engine";
 import { demoDocA, demoDocB } from "@/lib/doc-diff/demo-data";
 
@@ -57,6 +57,30 @@ function DiffRow({ item }: { item: DiffItem }) {
   );
 }
 
+// ─── Important Change Card ─────────────────────────────────
+
+function ImportantChangeCard({ item }: { item: DiffItem }) {
+  return (
+    <div className="rounded-lg border border-border bg-background p-4">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold tracking-wide text-primary uppercase">{item.key}</span>
+        <StatusBadge type={item.type} />
+      </div>
+      <div className="space-y-1">
+        {item.valueA && (
+          <div className="text-sm text-muted">{item.valueA}</div>
+        )}
+        {item.valueB && (
+          <div className="text-sm text-foreground font-medium">{item.valueB}</div>
+        )}
+        {item.difference && (
+          <div className="text-xs font-medium text-primary mt-1">{item.difference}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ────────────────────────────────────────
 
 export default function BusinessDocumentDifferenceChecker() {
@@ -64,11 +88,16 @@ export default function BusinessDocumentDifferenceChecker() {
   const [docB, setDocB] = useState("");
   const [result, setResult] = useState<DiffResult | null>(null);
   const [showUnchanged, setShowUnchanged] = useState(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const handleCompare = () => {
     if (!docA.trim() || !docB.trim()) return;
     const r = compareDocuments(docA, docB);
     setResult(r);
+    // Scroll to results after a brief delay
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   const handleDemo = () => {
@@ -76,6 +105,10 @@ export default function BusinessDocumentDifferenceChecker() {
     setDocB(demoDocB);
     const r = compareDocuments(demoDocA, demoDocB);
     setResult(r);
+    // Scroll to results after a brief delay
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   const handleClear = () => {
@@ -87,6 +120,8 @@ export default function BusinessDocumentDifferenceChecker() {
   const filteredItems = result?.items.filter(
     (i) => showUnchanged || i.type !== "UNCHANGED"
   );
+
+  const changedItems = result?.items.filter((i) => i.type === "CHANGED") || [];
 
   return (
     <div className="space-y-6">
@@ -102,23 +137,25 @@ export default function BusinessDocumentDifferenceChecker() {
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Document A */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">Document A</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Document A</label>
+          <p className="text-xs text-muted mb-1.5">Original or earlier version</p>
           <textarea
             value={docA}
             onChange={(e) => setDocA(e.target.value)}
-            placeholder={"Paste document text here...\n\nExample:\nTotal Price: USD 80,000\nDelivery Time: 45 days\nWarranty: 24 months"}
-            className="w-full h-56 rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y font-mono"
+            placeholder={"Total Price: USD 80,000\nDelivery Time: 45 days\nWarranty: 24 months"}
+            className="w-full h-44 rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y font-mono"
           />
         </div>
 
         {/* Document B */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1.5">Document B</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Document B</label>
+          <p className="text-xs text-muted mb-1.5">Revised or newer version</p>
           <textarea
             value={docB}
             onChange={(e) => setDocB(e.target.value)}
-            placeholder={"Paste document text here...\n\nExample:\nTotal Price: USD 86,000\nDelivery Time: 60 days\nWarranty: 12 months"}
-            className="w-full h-56 rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y font-mono"
+            placeholder={"Total Price: USD 86,000\nDelivery Time: 60 days\nWarranty: 12 months"}
+            className="w-full h-44 rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y font-mono"
           />
         </div>
       </div>
@@ -148,46 +185,51 @@ export default function BusinessDocumentDifferenceChecker() {
         )}
       </div>
 
+      {/* Empty state hint */}
+      {!result && (
+        <p className="text-sm text-muted text-center py-4">
+          Paste two document versions or try the demo to see how it works.
+        </p>
+      )}
+
       {/* Results */}
       {result && (
-        <div className="space-y-6">
-          {/* Summary */}
-          <div className="rounded-lg border border-border bg-surface p-4">
-            <h3 className="text-sm font-semibold text-foreground mb-3">Comparison Summary</h3>
-            <div className="flex flex-wrap gap-4">
-              <span className="text-sm">
-                <span className="font-semibold text-amber-700">{result.summary.changed}</span>
-                <span className="text-muted ml-1">Changed</span>
-              </span>
-              <span className="text-sm">
-                <span className="font-semibold text-green-700">{result.summary.added}</span>
-                <span className="text-muted ml-1">Added</span>
-              </span>
-              <span className="text-sm">
-                <span className="font-semibold text-red-700">{result.summary.removed}</span>
-                <span className="text-muted ml-1">Removed</span>
-              </span>
-              <span className="text-sm">
-                <span className="font-semibold text-gray-500">{result.summary.unchanged}</span>
-                <span className="text-muted ml-1">Unchanged</span>
-              </span>
+        <div ref={resultsRef} className="space-y-6">
+          {/* Comparison Summary */}
+          <div className="rounded-lg border border-border bg-surface p-5">
+            <h3 className="text-sm font-semibold text-foreground mb-4">Comparison Summary</h3>
+            <div className="flex items-baseline gap-6">
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-amber-700">{result.summary.changed}</span>
+                <span className="text-sm text-muted">Changed</span>
+              </div>
+              <div className="flex items-baseline gap-1.5 text-sm">
+                <span className="font-medium text-green-700">{result.summary.added}</span>
+                <span className="text-muted">Added</span>
+              </div>
+              <div className="flex items-baseline gap-1.5 text-sm">
+                <span className="font-medium text-red-700">{result.summary.removed}</span>
+                <span className="text-muted">Removed</span>
+              </div>
+              <div className="flex items-baseline gap-1.5 text-sm">
+                <span className="font-medium text-gray-500">{result.summary.unchanged}</span>
+                <span className="text-muted">Unchanged</span>
+              </div>
             </div>
           </div>
 
           {/* Important Changes */}
-          {result.importantChanges.length > 0 && (
-            <div className="rounded-lg border border-l-[3px] border-l-primary border-border bg-accent-bg/30 p-4">
-              <h3 className="text-sm font-semibold text-foreground mb-3">Important Changes</h3>
-              <ul className="space-y-2">
-                {result.importantChanges.map((change, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-foreground">
-                    <svg className="h-4 w-4 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {change}
-                  </li>
+          {changedItems.length > 0 && (
+            <div>
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-foreground">Important Changes</h3>
+                <p className="text-sm text-muted mt-1">Key commercial differences worth reviewing.</p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {changedItems.map((item) => (
+                  <ImportantChangeCard key={item.key} item={item} />
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 
