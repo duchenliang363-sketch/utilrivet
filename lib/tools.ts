@@ -14,6 +14,13 @@ export const tools: Tool[] = [
     category: "Calculators",
     status: "active",
   },
+  {
+    slug: "production-line-quote-comparator",
+    name: "Production Line Quote Comparator",
+    description: "Compare machinery quotations apples-to-apples.",
+    category: "Operations",
+    status: "active",
+  },
 ];
 
 export const categories = [

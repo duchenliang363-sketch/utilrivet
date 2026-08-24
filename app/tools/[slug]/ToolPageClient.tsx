@@ -6,6 +6,7 @@ import ToolLayout from "@/components/ToolLayout";
 import FAQ from "@/components/FAQ";
 import RelatedTools from "@/components/RelatedTools";
 import PercentageCalculator from "@/components/tools/PercentageCalculator";
+import QuoteComparator from "@/components/tools/QuoteComparator";
 
 interface ToolPageClientProps {
   tool: Tool;
@@ -14,6 +15,7 @@ interface ToolPageClientProps {
 
 const toolComponentMap: Record<string, React.ComponentType> = {
   "percentage-calculator": PercentageCalculator,
+  "production-line-quote-comparator": QuoteComparator,
 };
 
 export default function ToolPageClient({ tool, relatedTools }: ToolPageClientProps) {
