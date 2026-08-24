@@ -111,6 +111,70 @@ export const toolContents: Record<string, ToolContent> = {
       },
     ],
   },
+  "business-document-difference-checker": {
+    slug: "business-document-difference-checker",
+    subtitle:
+      "Compare two business documents and quickly find changes in prices, quantities, payment terms, delivery, warranty and scope.",
+    seoSections: [
+      {
+        title: "What is a Business Document Difference Checker?",
+        content:
+          "A business document difference checker is a tool that compares two versions of a commercial document and highlights the important changes between them. Instead of showing every minor text change like a generic diff tool, it focuses on the changes that matter for business decisions: price changes, quantity adjustments, payment term modifications, delivery time shifts, warranty reductions, and scope additions or removals. This makes it especially useful for procurement professionals, sales teams, and operations staff who need to quickly understand what changed between document versions.",
+      },
+      {
+        title: "Why Compare Business Documents?",
+        content:
+          "In purchasing, manufacturing, sales, and import/export operations, documents are frequently revised. A supplier may send an original quote and then a revised version with different prices or terms. A purchase order may differ from the invoice. A contract may be updated between versions. Manually comparing these documents is time-consuming and error-prone. A dedicated difference checker helps you spot important changes quickly, reducing the risk of overlooking critical modifications that could affect costs, timelines, or legal obligations.",
+      },
+      {
+        title: "What Changes Should You Look For?",
+        content:
+          "When comparing business documents, the most important changes typically involve: price increases or decreases, changes in payment terms such as deposit percentages, delivery time extensions or reductions, warranty period changes, items that were included but are now excluded or vice versa, freight and shipping cost changes, validity period modifications, and any new or removed line items. These changes can significantly impact the total cost of a deal and should always be verified before proceeding.",
+      },
+      {
+        title: "Common Use Cases",
+        content:
+          "This tool is commonly used to compare an original supplier quote against a revised quote, compare a quote against a purchase order to verify alignment, compare a purchase order against an invoice to check for discrepancies, compare two versions of a contract to identify modified terms, and compare an invoice against a packing list to verify shipped items. It is suitable for purchasing teams, manufacturing operations, sales professionals, import/export coordinators, and small business owners who regularly deal with commercial documents.",
+      },
+    ],
+    faq: [
+      {
+        question: "Can I compare two business documents?",
+        answer:
+          "Yes. Paste the text of both documents into the input fields and click Compare Documents. The tool will identify all changes between the two documents and highlight the most important ones.",
+      },
+      {
+        question: "What types of changes does the tool detect?",
+        answer:
+          "The tool detects four types of changes: CHANGED (a value was modified), ADDED (a new item appears in Document B), REMOVED (an item from Document A is missing in Document B), and UNCHANGED (items that are identical in both documents). It also calculates numeric differences for prices, percentages, days, and months.",
+      },
+      {
+        question: "Can I compare supplier quotations?",
+        answer:
+          "Yes. This is one of the primary use cases. Paste the original quote as Document A and the revised quote as Document B. The tool will highlight price changes, term modifications, and any items that were added or removed.",
+      },
+      {
+        question: "Can I compare a quote and purchase order?",
+        answer:
+          "Yes. Paste the quote as Document A and the purchase order as Document B. The tool will show you any differences in prices, quantities, terms, or scope between the two documents.",
+      },
+      {
+        question: "Can I compare invoices?",
+        answer:
+          "Yes. You can compare any two text-based business documents, including invoices, packing lists, contracts, and purchase orders.",
+      },
+      {
+        question: "Are my documents uploaded to a server?",
+        answer:
+          "No. Your document text is processed entirely in your browser. Nothing is uploaded, stored, or transmitted to any server.",
+      },
+      {
+        question: "Can this replace legal review?",
+        answer:
+          "No. This tool highlights document differences for review purposes only. Always verify important commercial and legal terms against the original documents and consult with appropriate professionals when needed.",
+      },
+    ],
+  },
 };
 
 export function getToolContent(slug: string): ToolContent | undefined {

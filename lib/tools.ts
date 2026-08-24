@@ -23,6 +23,13 @@ export const tools: Tool[] = [
     status: "active",
     featured: true,
   },
+  {
+    slug: "business-document-difference-checker",
+    name: "Business Document Difference Checker",
+    description: "Compare two business documents and spot important changes in prices, quantities, terms and scope.",
+    category: "Operations",
+    status: "active",
+  },
 ];
 
 export const categories = [
