@@ -88,6 +88,7 @@ export default function BusinessDocumentDifferenceChecker() {
   const [docB, setDocB] = useState("");
   const [result, setResult] = useState<DiffResult | null>(null);
   const [showUnchanged, setShowUnchanged] = useState(false);
+  const [showAllItems, setShowAllItems] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const handleCompare = () => {
@@ -115,6 +116,7 @@ export default function BusinessDocumentDifferenceChecker() {
     setDocA("");
     setDocB("");
     setResult(null);
+    setShowAllItems(false);
   };
 
   const filteredItems = result?.items.filter(
@@ -233,25 +235,35 @@ export default function BusinessDocumentDifferenceChecker() {
             </div>
           )}
 
-          {/* All differences */}
-          <div className="rounded-lg border border-border overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
-              <h3 className="text-sm font-semibold text-foreground">All Items</h3>
-              {result.summary.unchanged > 0 && (
-                <button
-                  onClick={() => setShowUnchanged(!showUnchanged)}
-                  className="text-xs text-muted hover:text-foreground transition-colors"
-                >
-                  {showUnchanged ? "Hide unchanged" : `Show unchanged (${result.summary.unchanged})`}
-                </button>
-              )}
+          {/* All Items Toggle */}
+          <button
+            onClick={() => setShowAllItems(!showAllItems)}
+            className="w-full text-left text-sm font-medium text-primary hover:text-primary-hover transition-colors py-2"
+          >
+            {showAllItems ? "Hide comparison details" : `View all ${result.items.length} comparison items`}
+          </button>
+
+          {/* All differences (collapsible) */}
+          {showAllItems && (
+            <div className="rounded-lg border border-border overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
+                <h3 className="text-sm font-semibold text-foreground">All Items</h3>
+                {result.summary.unchanged > 0 && (
+                  <button
+                    onClick={() => setShowUnchanged(!showUnchanged)}
+                    className="text-xs text-muted hover:text-foreground transition-colors"
+                  >
+                    {showUnchanged ? "Hide unchanged" : `Show unchanged (${result.summary.unchanged})`}
+                  </button>
+                )}
+              </div>
+              <div className="divide-y divide-border">
+                {filteredItems?.map((item) => (
+                  <DiffRow key={item.key} item={item} />
+                ))}
+              </div>
             </div>
-            <div className="divide-y divide-border">
-              {filteredItems?.map((item) => (
-                <DiffRow key={item.key} item={item} />
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* Disclaimer */}
           <div className="text-xs text-muted border-t border-border pt-4">
