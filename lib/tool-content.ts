@@ -520,6 +520,85 @@ export const toolContents: Record<string, ToolContent> = {
       },
     ],
   },
+  "steam-trap-survey-report-builder": {
+    slug: "steam-trap-survey-report-builder",
+    subtitle:
+      "Record steam traps and their condition, estimate annual steam loss costs, prioritize repairs, and create a printable steam trap survey report.",
+    seoSections: [
+      {
+        title: "What is a Steam Trap Survey?",
+        content:
+          "A steam trap survey is a systematic inspection of every steam trap in a plant steam system. Each trap is identified, its condition is tested (Good, Leaking, Failed Open, Failed Closed, or Unknown), and the estimated steam loss is recorded. The survey turns individual trap findings into one total annual cost and a prioritized repair list — the foundation of practical steam system maintenance and energy management.",
+      },
+      {
+        title: "Why Do Failed Steam Traps Cost So Much?",
+        content:
+          "A trap that leaks or fails open discharges live steam continuously. Even a modest loss of 10–30 lb/hr, over thousands of annual operating hours, becomes hundreds of thousands of pounds of lost steam per year. At a typical steam cost of $10–15 per 1,000 lb, a single failing trap can waste more than $1,000 annually — usually far above its repair cost.",
+      },
+      {
+        title: "How Does This Tool Estimate Steam Loss Cost?",
+        content:
+          "The estimated steam loss (in lb/hr or kg/hr) is entered from your inspection method or survey equipment — the tool does not pretend to simulate trap orifice flow. It multiplies the loss rate by annual operating hours to get pounds of steam lost per year, then values it at your steam cost per 1,000 lb. Traps marked Good, Failed Closed, or Unknown are never counted as recoverable savings automatically.",
+      },
+      {
+        title: "How Are Steam Trap Repairs Prioritized?",
+        content:
+          "Using a transparent payback rule: repair cost divided by annual savings. Payback of 3 months or less is HIGH priority, 3–12 months is MEDIUM, over 12 months is LOW, and traps without a repair cost are Unrated. Failed Closed and Unknown traps are flagged as Inspection Required because they can create process problems even without a measurable steam loss.",
+      },
+      {
+        title: "What Should a Steam Trap Survey Report Include?",
+        content:
+          "A useful survey report includes the project and facility details, survey date and technician, operating assumptions, a trap inventory with ID, location, type, condition, loss and repair status, condition counts with a failure rate, total annual loss versus remaining open loss, and a prioritized repair list. This builder assembles all of these sections and lets you copy them as text or print them as a PDF.",
+      },
+    ],
+    faq: [
+      {
+        question: "What is a steam trap survey?",
+        answer:
+          "It is a plant-wide inspection where each steam trap is identified, tested, and recorded with its condition and estimated steam loss. The results are summarized into total annual losses and a prioritized repair plan, and the survey is typically repeated on a regular schedule.",
+      },
+      {
+        question: "Does the tool calculate steam loss from trap type and pressure?",
+        answer:
+          "No. Actual steam loss depends on trap size, orifice size, differential pressure, failure mode, installation and back pressure, so V1 uses the measured or estimated steam loss you enter from your inspection method. The tool focuses on the survey workflow: recording, costing, prioritizing and reporting.",
+      },
+      {
+        question: "How is the annual cost of a failing trap calculated?",
+        answer:
+          "Steam loss (lb/hr) × annual operating hours = pounds of steam lost per year. Dividing by 1,000 and multiplying by your steam cost per 1,000 lb gives the annual cost loss. Only traps marked Leaking or Failed Open count toward recoverable savings.",
+      },
+      {
+        question: "What does Failed Closed mean for my report?",
+        answer:
+          "A Failed Closed trap blocks condensate discharge, which can cause water hammer, reduced heat transfer and equipment damage. It is flagged as Inspection Required; the tool does not estimate a dollar loss because the impact is usually a process or reliability issue rather than lost steam.",
+      },
+      {
+        question: "How should trap repairs be prioritized?",
+        answer:
+          "By payback: repair cost divided by annual savings. Payback of 3 months or less is HIGH, 3–12 months is MEDIUM, over 12 months is LOW. Traps without a repair cost are Unrated, and Failed Closed or Unknown traps are marked Inspection Required.",
+      },
+      {
+        question: "What units are supported?",
+        answer:
+          "Steam pressure can be entered in psi or bar, and steam loss in lb/hr or kg/hr. Everything is normalized internally to psi and lb/hr, so results are consistent whichever units you use.",
+      },
+      {
+        question: "Can I print the survey as a PDF?",
+        answer:
+          "Yes. Click Print Report and use your browser's Print to PDF option. The print layout hides buttons and input controls and shows the report header, survey summary, trap inventory, repair priorities, assumptions and disclaimer.",
+      },
+      {
+        question: "Is my survey data uploaded or stored?",
+        answer:
+          "No. Everything runs locally in your browser. Survey data is kept only in the current page session — nothing is uploaded, stored, or sent to any server.",
+      },
+      {
+        question: "Does this replace a professional steam survey?",
+        answer:
+          "No. This tool creates preliminary estimates and a structured report for maintenance planning. It is not a certified audit, certified steam survey, or official inspection report. Actual steam loss depends on trap design, orifice size, differential pressure, operating condition, installation and measurement method.",
+      },
+    ],
+  },
 };
 
 export function getToolContent(slug: string): ToolContent | undefined {

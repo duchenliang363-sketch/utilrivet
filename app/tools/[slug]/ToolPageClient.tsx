@@ -13,6 +13,7 @@ import SupplierQuoteCompletenessChecker from "@/components/tools/SupplierQuoteCo
 import BoilerBlowdownCostSavingsCalculator from "@/components/tools/BoilerBlowdownCostSavingsCalculator";
 import CondensateReturnSavingsCalculator from "@/components/tools/CondensateReturnSavingsCalculator";
 import CompressedAirLeakSurveyReportBuilder from "@/components/tools/CompressedAirLeakSurveyReportBuilder";
+import SteamTrapSurveyReportBuilder from "@/components/tools/SteamTrapSurveyReportBuilder";
 
 interface ToolPageClientProps {
   tool: Tool;
@@ -28,6 +29,7 @@ const toolComponentMap: Record<string, React.ComponentType> = {
   "boiler-blowdown-cost-savings-calculator": BoilerBlowdownCostSavingsCalculator,
   "condensate-return-savings-calculator": CondensateReturnSavingsCalculator,
   "compressed-air-leak-survey-report-builder": CompressedAirLeakSurveyReportBuilder,
+  "steam-trap-survey-report-builder": SteamTrapSurveyReportBuilder,
 };
 
 export default function ToolPageClient({ tool, relatedTools }: ToolPageClientProps) {

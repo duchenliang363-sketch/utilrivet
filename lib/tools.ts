@@ -65,6 +65,13 @@ export const tools: Tool[] = [
     category: "Manufacturing",
     status: "active",
   },
+  {
+    slug: "steam-trap-survey-report-builder",
+    name: "Steam Trap Survey Report Builder",
+    description: "Record steam traps and their condition, estimate annual steam loss costs and prioritize repairs in a printable survey report.",
+    category: "Manufacturing",
+    status: "active",
+  },
 ];
 
 export const categories = [
