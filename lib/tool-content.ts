@@ -446,6 +446,80 @@ export const toolContents: Record<string, ToolContent> = {
       },
     ],
   },
+  "compressed-air-leak-survey-report-builder": {
+    slug: "compressed-air-leak-survey-report-builder",
+    subtitle:
+      "Record multiple compressed air leaks, estimate annual energy and cost losses, prioritize repairs, and create a simple leak survey report.",
+    seoSections: [
+      {
+        title: "What is a Compressed Air Leak Survey?",
+        content:
+          "A compressed air leak survey is a structured walk-through of a compressed air system to locate, record, and quantify air leaks, usually with an ultrasonic leak detector. Each leak is tagged with a location, estimated flow rate, and repair cost. The survey turns scattered leaks into a single total annual loss and a prioritized repair list — the core of practical compressed air leak management for plants and service contractors.",
+      },
+      {
+        title: "What Should a Compressed Air Leak Report Include?",
+        content:
+          "A useful air leak survey report includes the project and facility details, survey date, operating assumptions (hours, electricity rate, compressor specific power), a leak list with ID, location, flow rate, annual cost and repair status, the total estimated annual loss, remaining open loss, and a prioritized repair list. This builder generates exactly that structure and lets you copy it as text or print it as a PDF from your browser.",
+      },
+      {
+        title: "How Do You Prioritize Compressed Air Leak Repairs?",
+        content:
+          "The simplest transparent rule is payback: compare each leak's repair cost against its annual energy savings. Leaks that pay back within three months are HIGH priority, three to twelve months is MEDIUM, and over twelve months is LOW. Sorting by payback and then by annual savings tells maintenance teams exactly where to start, without needing a complex engineering model.",
+      },
+      {
+        title: "How Are Compressed Air Leak Costs Estimated?",
+        content:
+          "Each leak's flow rate (in CFM or L/s) is converted into compressor power using the system's specific power (kW per 100 CFM). Multiplying by annual operating hours gives wasted kWh, and multiplying by the electricity rate gives the annual cost loss. Summing all leaks gives the survey total. This tool reuses the same verified formulas as the single-leak Compressed Air Leak Cost Calculator.",
+      },
+      {
+        title: "Why Track Repaired and Open Leaks?",
+        content:
+          "A survey is a snapshot, but repairs happen over weeks or months. Tracking Open, Planned, and Repaired status keeps the original annual loss visible for reporting while showing the remaining open loss that still needs action. It also gives contractors a simple way to document completed work and follow up on outstanding repairs.",
+      },
+    ],
+    faq: [
+      {
+        question: "What is a compressed air leak survey?",
+        answer:
+          "It is a systematic inspection of a compressed air system to find and record leaks, estimate their flow rates, calculate the total annual energy and cost loss, and produce a prioritized repair plan. Surveys are typically done with ultrasonic detectors and repeated on a regular schedule.",
+      },
+      {
+        question: "What should be included in a leak survey report?",
+        answer:
+          "Include the project and facility name, survey date, operating assumptions, a numbered leak list with location, flow, cost and status, the total annual loss, remaining open loss, and repair priorities. This builder assembles all of these sections automatically.",
+      },
+      {
+        question: "How do I calculate the annual cost of multiple air leaks?",
+        answer:
+          "Add every leak to the survey with its flow rate and repair cost. The tool calculates each leak's power, energy waste and annual cost using your operating hours, electricity rate, and compressor specific power, then sums them into the total estimated annual loss.",
+      },
+      {
+        question: "How should compressed air leaks be prioritized for repair?",
+        answer:
+          "By payback: repair cost divided by annual savings. Payback of 3 months or less is HIGH priority, 3–12 months is MEDIUM, over 12 months is LOW. Leaks without an estimated repair cost are shown as Unrated.",
+      },
+      {
+        question: "Can I use this with any ultrasonic leak detector?",
+        answer:
+          "Yes. The builder is hardware-independent — enter the estimated leak flow rate from any brand of ultrasonic detector or estimation method. No device connection is needed.",
+      },
+      {
+        question: "Can I print the survey as a PDF?",
+        answer:
+          "Yes. Click Print Report and use your browser's Print to PDF option. The print layout hides buttons and input controls and shows the report header, survey summary, leak list, repair priorities, assumptions and disclaimer.",
+      },
+      {
+        question: "Is my survey data uploaded or stored?",
+        answer:
+          "No. Everything runs locally in your browser. Survey data is kept only in the current page session — nothing is uploaded, stored, or sent to any server.",
+      },
+      {
+        question: "Does this replace a professional compressed air audit?",
+        answer:
+          "No. This tool creates estimates and a structured report for maintenance planning. It is not a certified audit or engineering approval. Actual savings depend on compressor performance, system controls, operating conditions, and measured leak flow.",
+      },
+    ],
+  },
 };
 
 export function getToolContent(slug: string): ToolContent | undefined {

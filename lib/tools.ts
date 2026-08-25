@@ -58,6 +58,13 @@ export const tools: Tool[] = [
     category: "Manufacturing",
     status: "active",
   },
+  {
+    slug: "compressed-air-leak-survey-report-builder",
+    name: "Compressed Air Leak Survey Report Builder",
+    description: "Record multiple compressed air leaks, estimate annual losses and prioritize repairs in a simple survey report.",
+    category: "Manufacturing",
+    status: "active",
+  },
 ];
 
 export const categories = [

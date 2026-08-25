@@ -12,6 +12,7 @@ import CompressedAirLeakCostCalculator from "@/components/tools/CompressedAirLea
 import SupplierQuoteCompletenessChecker from "@/components/tools/SupplierQuoteCompletenessChecker";
 import BoilerBlowdownCostSavingsCalculator from "@/components/tools/BoilerBlowdownCostSavingsCalculator";
 import CondensateReturnSavingsCalculator from "@/components/tools/CondensateReturnSavingsCalculator";
+import CompressedAirLeakSurveyReportBuilder from "@/components/tools/CompressedAirLeakSurveyReportBuilder";
 
 interface ToolPageClientProps {
   tool: Tool;
@@ -26,6 +27,7 @@ const toolComponentMap: Record<string, React.ComponentType> = {
   "supplier-quote-completeness-checker": SupplierQuoteCompletenessChecker,
   "boiler-blowdown-cost-savings-calculator": BoilerBlowdownCostSavingsCalculator,
   "condensate-return-savings-calculator": CondensateReturnSavingsCalculator,
+  "compressed-air-leak-survey-report-builder": CompressedAirLeakSurveyReportBuilder,
 };
 
 export default function ToolPageClient({ tool, relatedTools }: ToolPageClientProps) {
