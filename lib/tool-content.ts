@@ -377,6 +377,75 @@ export const toolContents: Record<string, ToolContent> = {
       },
     ],
   },
+  "condensate-return-savings-calculator": {
+    slug: "condensate-return-savings-calculator",
+    subtitle:
+      "Estimate annual fuel, water and wastewater savings from increasing condensate return in an industrial steam system.",
+    seoSections: [
+      {
+        title: "What is a condensate return savings calculator?",
+        content:
+          "A condensate return savings calculator estimates how much money an industrial facility can save by recovering and returning more hot condensate to the boiler instead of discharging it to drain. When condensate is lost, the boiler must make up with cold fresh water and reheat it to steam temperature, wasting both fuel and treated water. This calculator quantifies those losses and shows the potential savings from improving condensate recovery.",
+      },
+      {
+        title: "Why does returning condensate save energy?",
+        content:
+          "Condensate leaving steam equipment is typically near saturation temperature — often 180°F or higher. Returning this hot water back to the boiler feedwater system recovers its sensible heat, reducing the fuel needed to raise cold makeup water to boiling temperature. Every pound of returned condensate avoids heating a pound of cold makeup water from ambient temperature to near-boiling, which directly reduces fuel consumption and operating cost.",
+      },
+      {
+        title: "How does condensate recovery reduce water costs?",
+        content:
+          "Returned condensate is already treated boiler feedwater — it has been softened, deaerated, and chemically conditioned. When condensate is not recovered, the boiler must replace it with fresh raw water that requires treatment chemicals, filtration, and possibly softening. Additionally, every gallon of makeup water that enters the boiler eventually leaves as blowdown or steam vented to atmosphere, incurring sewer or wastewater discharge charges. Recovering condensate reduces both water purchase costs and sewer discharge volumes.",
+      },
+      {
+        title: "What affects condensate recovery savings?",
+        content:
+          "The main factors affecting savings are: steam production rate (larger systems save more per percentage point of recovery improvement), current versus target return rate (the bigger the gap, the higher the potential savings), condensate temperature (hotter condensate carries more recoverable heat), makeup water temperature (colder makeup means more fuel savings per pound recovered), boiler efficiency (lower efficiency amplifies fuel savings from recovered heat), fuel price, water and sewer rates, and annual operating hours. Facilities with continuous operation and high fuel or water costs see the fastest payback on condensate return improvements.",
+      },
+    ],
+    faq: [
+      {
+        question: "What is condensate return?",
+        answer:
+          "Condensate return is the practice of collecting hot condensed steam from heat exchangers, radiators, tracing lines, and process equipment, and piping it back to the boiler feedwater system instead of draining it to the sewer. Returned condensate retains most of its heat and has already been chemically treated, making it valuable to the steam system.",
+      },
+      {
+        question: "Why does condensate recovery save fuel?",
+        answer:
+          "Because condensate is hot — typically 180–200°F — while makeup water is cold — typically 50–70°F. Returning condensate avoids the fuel cost of reheating cold makeup water from ambient temperature to near-boiling. The fuel savings are roughly proportional to the temperature difference between condensate and makeup water, multiplied by the mass of condensate recovered.",
+      },
+      {
+        question: "How much water can condensate return save?",
+        answer:
+          "For every pound of steam produced, approximately one pound of condensate can theoretically be returned. If your boiler produces 10,000 lb/hr of steam and you improve return from 40% to 75%, you recover an additional 3,500 lb/hr of condensate — about 420 gallons per hour or over 1 million gallons per year at typical operating schedules. That is 1 million fewer gallons of makeup water to purchase, treat, and eventually discharge.",
+      },
+      {
+        question: "How is condensate return savings calculated?",
+        answer:
+          "The calculator determines additional condensate returned by multiplying annual steam production by the increase in return rate percentage. It then calculates water saved (using 8.34 lb/gallon density), sensible heat recovered (using 1 Btu/lb·°F specific heat and the temperature difference between condensate and makeup water), fuel energy saved (dividing recovered heat by boiler efficiency), and converts each into dollar savings using your fuel cost, water cost, and sewer cost inputs.",
+      },
+      {
+        question: "Does condensate temperature affect savings?",
+        answer:
+          "Yes, significantly. Higher condensate temperature means more sensible heat recovered per pound. Condensate at 200°F saves roughly twice as much fuel as condensate at 130°F when makeup water is 60°F, because the temperature difference — and thus the recoverable heat — is about doubled. This is why keeping condensate hot and well-insulated during return is important.",
+      },
+      {
+        question: "How accurate is this calculator?",
+        answer:
+          "This calculator provides preliminary estimates based on simplified thermodynamic assumptions: constant specific heat of 1 Btu/lb·°F, no flash steam recovery, no pressure-dependent enthalpy corrections, and constant water density. Actual savings depend on steam pressure, flash steam losses, condensate quality degradation, deaerator performance, and system-specific design. Use this tool for scoping and justification; detailed engineering analysis should follow before major capital investment.",
+      },
+      {
+        question: "Can I use kg/hr and Celsius?",
+        answer:
+          "Yes. Steam production accepts both lb/hr and kg/hr, and temperatures accept both °F and °C. Select your preferred unit from the dropdown next to each input field. All values are converted internally to consistent units (lb/hr and °F) before calculation, so results remain the same regardless of which unit system you choose.",
+      },
+      {
+        question: "How do I calculate condensate recovery payback?",
+        answer:
+          "Enter your estimated project or upgrade cost in the Project / Upgrade Cost field. The calculator divides this cost by total annual savings to compute the payback period in months. If payback is less than 12 months, it shows in months; if longer, it shows years and remaining months. Leave this field blank or set to zero if you only want to see savings without payback analysis.",
+      },
+    ],
+  },
 };
 
 export function getToolContent(slug: string): ToolContent | undefined {

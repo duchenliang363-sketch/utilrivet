@@ -51,6 +51,13 @@ export const tools: Tool[] = [
     category: "Manufacturing",
     status: "active",
   },
+  {
+    slug: "condensate-return-savings-calculator",
+    name: "Condensate Return Savings Calculator",
+    description: "Estimate fuel, water and wastewater savings from increasing condensate return in an industrial steam system.",
+    category: "Manufacturing",
+    status: "active",
+  },
 ];
 
 export const categories = [
