@@ -244,6 +244,75 @@ export const toolContents: Record<string, ToolContent> = {
       },
     ],
   },
+  "supplier-quote-completeness-checker": {
+    slug: "supplier-quote-completeness-checker",
+    subtitle:
+      "Check a supplier quotation for missing prices, quantities, MOQ, lead time, payment terms, freight, Incoterms, warranty and other key commercial terms.",
+    seoSections: [
+      {
+        title: "What is a Supplier Quote Completeness Checker?",
+        content:
+          "A supplier quote completeness checker is a free web tool that scans the text of a supplier quotation and identifies which key commercial fields are present, missing, or unclear. Instead of reviewing each quotation line by line, procurement professionals can paste the quote text and instantly see gaps such as a missing MOQ, Incoterm, freight statement, or quote validity. It works as an automated quotation checklist for buyers, sourcing specialists, and small businesses.",
+      },
+      {
+        title: "What Should a Supplier Quotation Include?",
+        content:
+          "A complete supplier quotation should include the supplier name, quote number and date, product description, quantity, unit price and total price with a clear currency, MOQ, lead time, payment terms, freight or shipping arrangement, Incoterm, taxes and duties, warranty, quote validity, and — for equipment purchases — installation, training, and spare parts details. This checker reviews 19 common fields so nothing important is overlooked before you compare or approve a quote.",
+      },
+      {
+        title: "Why Should Buyers Check Quotations Before Comparing Them?",
+        content:
+          "Comparing incomplete quotations leads to wrong decisions. A quote that looks cheaper may exclude freight, taxes, or installation that a competitor includes. By checking completeness first, buyers can ask suppliers the right questions and get comparable, like-for-like offers. Once a quotation is complete, it can be compared against other supplier quotes using the Production Line Quote Comparator.",
+      },
+      {
+        title: "Common Information Missing from Supplier Quotes",
+        content:
+          "In practice, the most commonly missing items are the Incoterm, freight arrangement, quote validity period, MOQ, and tax or duty statements. Equipment quotations also frequently omit installation scope, operator training, and spare parts recommendations. Asking about these items up front avoids surprise costs and delays later in the order process.",
+      },
+    ],
+    faq: [
+      {
+        question: "What should be included in a supplier quotation?",
+        answer:
+          "A solid quotation includes the supplier name, quote number and date, product description, quantity, unit and total price with currency, MOQ, lead time, payment terms, freight arrangement, Incoterm, taxes and duties, warranty, and quote validity. For machinery and equipment, installation, training, and spare parts should also be stated.",
+      },
+      {
+        question: "How do I check if a supplier quote is complete?",
+        answer:
+          "Paste the quotation text into this checker and click Check Quote. The tool scans the text with rule-based matching, scores completeness as a percentage, and lists every missing or unclear field so you know exactly what to follow up on.",
+      },
+      {
+        question: "What information is commonly missing from quotations?",
+        answer:
+          "The most commonly missing items are the Incoterm, freight or shipping costs, quote validity, MOQ, and tax or duty statements. Equipment quotes often omit installation, training, and spare parts details.",
+      },
+      {
+        question: "Why are payment terms important in a supplier quote?",
+        answer:
+          "Payment terms define your cash flow exposure, including the deposit amount, balance timing, and payment method. Without clear payment terms, buyers risk unexpected advance payment demands or unfavorable conditions after the order is placed.",
+      },
+      {
+        question: "Should a quotation include an Incoterm?",
+        answer:
+          "Yes, especially for international trade. The Incoterm (for example FOB Shanghai or CIF Rotterdam) defines who pays freight, insurance, and duties, and where risk transfers. Quotes without an Incoterm are difficult to compare fairly.",
+      },
+      {
+        question: "What is quotation validity?",
+        answer:
+          "Quote validity states how long the quoted prices and terms remain in effect, for example 30 days. Raw material prices and freight rates change, so a quote without a validity period may no longer be honored by the time you are ready to order.",
+      },
+      {
+        question: "Does this tool verify whether a price is competitive?",
+        answer:
+          "No. This tool only checks whether common quotation fields are present, missing, or unclear. It does not judge whether prices or terms are competitive, favorable, or legally sufficient. Always review the commercial terms yourself.",
+      },
+      {
+        question: "Is my supplier quotation uploaded or stored?",
+        answer:
+          "No. All checks run locally in your browser using rule-based text matching. Your quotation text is never uploaded, stored, or shared.",
+      },
+    ],
+  },
 };
 
 export function getToolContent(slug: string): ToolContent | undefined {

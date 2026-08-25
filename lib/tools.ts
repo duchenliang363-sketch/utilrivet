@@ -37,6 +37,13 @@ export const tools: Tool[] = [
     category: "Manufacturing",
     status: "active",
   },
+  {
+    slug: "supplier-quote-completeness-checker",
+    name: "Supplier Quote Completeness Checker",
+    description: "Check a supplier quotation for missing commercial terms before comparing or approving it.",
+    category: "Operations",
+    status: "active",
+  },
 ];
 
 export const categories = [
