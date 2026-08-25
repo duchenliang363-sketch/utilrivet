@@ -54,8 +54,8 @@ export default function QuoteComparator() {
       {!result && (
         <section>
           <h2 className="text-lg font-semibold text-foreground mb-3">Upload Quotations</h2>
-          <div className="rounded-lg border-2 border-dashed border-border p-8 text-center">
-            <svg className="mx-auto h-10 w-10 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <div className="rounded-xl border-2 border-dashed border-border p-8 text-center">
+            <svg className="mx-auto h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
             </svg>
             <p className="mt-3 text-sm text-muted">
@@ -66,10 +66,10 @@ export default function QuoteComparator() {
             </p>
           </div>
 
-          <div className="mt-4 rounded-lg border border-border p-4">
+          <div className="mt-4 rounded-xl border border-border p-4">
             <p className="text-xs text-muted mb-2">Or paste quotation text:</p>
             <textarea
-              className="w-full rounded-md border border-border px-3 py-2 text-sm text-foreground bg-background focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+              className="field-textarea"
               rows={3}
               placeholder="Paste quotation content here..."
               disabled
@@ -84,19 +84,11 @@ export default function QuoteComparator() {
       {/* Try Demo / Reset */}
       <div className="flex gap-3">
         {!result ? (
-          <button
-            type="button"
-            onClick={handleDemo}
-            className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
-          >
+          <button type="button" onClick={handleDemo} className="btn btn-primary">
             Try Demo
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={handleReset}
-            className="rounded-md border border-border px-4 py-2 text-sm font-medium text-muted hover:text-foreground transition-colors"
-          >
+          <button type="button" onClick={handleReset} className="btn btn-secondary">
             &larr; Start Over
           </button>
         )}
@@ -104,7 +96,7 @@ export default function QuoteComparator() {
 
       {/* Demo Notice */}
       {result && isDemo && (
-        <div className="rounded-md border border-blue-200 bg-blue-50 p-4">
+        <div className="rounded-xl border border-primary-100 bg-primary-50 p-4">
           <p className="text-sm text-blue-800">
             <span className="font-semibold">Demo Mode</span> — Showing 3 fictional suppliers.
             Supplier B has the lowest price ($72,000) but is missing key items.
@@ -152,14 +144,14 @@ function ComparisonMatrix({ result }: { result: ComparisonResult }) {
 
   return (
     <section>
-      <h2 className="text-xl font-semibold text-foreground">Apples-to-Apples Comparison</h2>
-      <div className="mt-4 overflow-x-auto rounded-lg border border-border">
+      <h2 className="text-lg font-semibold text-foreground">Apples-to-Apples Comparison</h2>
+      <div className="mt-4 overflow-x-auto rounded-xl border border-border">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-surface border-b border-border">
               <th className="text-left py-3 px-4 font-semibold text-foreground min-w-[180px]">Item</th>
               {suppliers.map((s) => (
-                <th key={s.id} className="text-center py-3 px-4 font-semibold text-foreground min-w-[120px]">
+                <th key={s.id} className="text-right py-3 px-4 font-semibold text-foreground min-w-[120px]">
                   {s.name}
                 </th>
               ))}
@@ -206,17 +198,20 @@ function CategoryRows({
         </td>
       </tr>
       {items.map((item) => (
-        <tr key={item.id} className="border-b border-border last:border-b-0">
+        <tr key={item.id} className="border-b border-border last:border-b-0 hover:bg-gray-50/70 transition-colors">
           <td className="py-2.5 px-4 text-foreground">{item.name}</td>
           {suppliers.map((s) => {
             const data = s.items[item.id] || { status: "Missing" as ItemStatus };
             const isDiff = item.type === "value" && differentItemIds.has(item.id);
             return (
-              <td key={s.id} className={`py-2.5 px-4 text-center ${isDiff ? "bg-blue-50/50" : ""}`}>
+              <td
+                key={s.id}
+                className={`py-2.5 px-4 ${item.type === "status" ? "text-center" : "text-right"} ${isDiff ? "bg-primary-50/60" : ""}`}
+              >
                 {item.type === "status" ? (
                   <StatusBadge status={data.status} />
                 ) : (
-                  <span className="text-sm text-foreground">{data.value || "—"}</span>
+                  <span className="text-sm tabular-nums text-foreground">{data.value || "—"}</span>
                 )}
               </td>
             );
@@ -237,7 +232,7 @@ function MissingItemsSection({ result }: { result: ComparisonResult }) {
 
   return (
     <section>
-      <h2 className="text-xl font-semibold text-foreground">Missing Items</h2>
+      <h2 className="text-lg font-semibold text-foreground">Missing Items</h2>
       <p className="mt-1 text-sm text-muted">
         Items not found in the quotation. This does not mean the supplier excludes them — they may simply not be listed.
       </p>
@@ -246,7 +241,7 @@ function MissingItemsSection({ result }: { result: ComparisonResult }) {
           const items = result.missing[s.id];
           if (items.length === 0) return null;
           return (
-            <div key={s.id} className="rounded-lg border border-border p-4">
+            <div key={s.id} className="rounded-xl border border-border p-4">
               <h3 className="text-sm font-semibold text-foreground">{s.name}</h3>
               <p className="text-xs text-muted mt-0.5">{items.length} item{items.length !== 1 ? "s" : ""} not found in quotation</p>
               <ul className="mt-3 space-y-1.5">
@@ -274,13 +269,13 @@ function MajorDifferencesSection({ result }: { result: ComparisonResult }) {
 
   return (
     <section>
-      <h2 className="text-xl font-semibold text-foreground">Major Differences</h2>
+      <h2 className="text-lg font-semibold text-foreground">Major Differences</h2>
       <p className="mt-1 text-sm text-muted">
         Items where suppliers provide different values or specifications.
       </p>
       <div className="mt-4 space-y-4">
         {result.different.map((diff) => (
-          <div key={diff.itemId} className="rounded-lg border border-border p-4">
+          <div key={diff.itemId} className="rounded-xl border border-border p-4">
             <h3 className="text-sm font-semibold text-foreground">{diff.itemName}</h3>
             <div className="mt-2 grid gap-2 sm:grid-cols-3">
               {diff.values.map((v) => (
@@ -307,7 +302,7 @@ function QuestionsSection({ result }: { result: ComparisonResult }) {
 
   return (
     <section>
-      <h2 className="text-xl font-semibold text-foreground">Questions to Ask Suppliers</h2>
+      <h2 className="text-lg font-semibold text-foreground">Questions to Ask Suppliers</h2>
       <p className="mt-1 text-sm text-muted">
         Auto-generated questions based on missing, unclear, or different items in each quotation.
       </p>
@@ -316,7 +311,7 @@ function QuestionsSection({ result }: { result: ComparisonResult }) {
           const qs = result.questions[s.id];
           if (qs.length === 0) return null;
           return (
-            <div key={s.id} className="rounded-lg border border-border p-4">
+            <div key={s.id} className="rounded-xl border border-border p-4">
               <h3 className="text-sm font-semibold text-foreground">{s.name}</h3>
               <p className="text-xs text-muted mt-0.5">{qs.length} question{qs.length !== 1 ? "s" : ""}</p>
               <ol className="mt-3 space-y-2">

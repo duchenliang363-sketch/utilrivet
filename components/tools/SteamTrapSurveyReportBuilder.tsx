@@ -17,6 +17,8 @@ import {
   type TrapEntry,
   type TrapType,
 } from "@/lib/steam-trap-survey/engine";
+import SectionCard from "@/components/SectionCard";
+import EmptyState from "@/components/EmptyState";
 
 const DEFAULT_SETTINGS: SurveySettings = {
   projectName: "",
@@ -59,9 +61,8 @@ function PriorityBadge({ priority }: { priority: Priority }) {
   );
 }
 
-const inputClass =
-  "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary";
-const labelClass = "block text-xs font-medium text-muted mb-1";
+const inputClass = "field-input";
+const labelClass = "field-label";
 
 // ─── Trap Card ─────────────────────────────────────────────
 
@@ -76,7 +77,7 @@ function TrapCard({
 }) {
   const trap = computed.entry;
   return (
-    <div className="rounded-lg border border-border bg-background p-4 space-y-3">
+    <div className="rounded-xl border border-border bg-background p-4 space-y-3">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -87,13 +88,13 @@ function TrapCard({
           <select
             value={trap.status}
             onChange={(e) => onChange({ status: e.target.value as RepairStatus })}
-            className="rounded-lg border border-border bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="field-select w-28 text-xs"
           >
             <option value="Open">Open</option>
             <option value="Planned">Planned</option>
             <option value="Repaired">Repaired</option>
           </select>
-          <button onClick={onDelete} className="text-xs text-muted hover:text-red-600 transition-colors">
+          <button onClick={onDelete} className="btn btn-danger btn-sm shrink-0">
             Delete
           </button>
         </div>
@@ -147,7 +148,7 @@ function TrapCard({
             <select
               value={trap.pressureUnit}
               onChange={(e) => onChange({ pressureUnit: e.target.value as PressureUnit })}
-              className="rounded-lg border border-border bg-background px-2 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="field-select w-24 shrink-0"
             >
               <option value="psi">psi</option>
               <option value="bar">bar</option>
@@ -180,7 +181,7 @@ function TrapCard({
             <select
               value={trap.lossUnit}
               onChange={(e) => onChange({ lossUnit: e.target.value as LossUnit })}
-              className="rounded-lg border border-border bg-background px-2 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="field-select w-24 shrink-0"
             >
               <option value="lb/hr">lb/hr</option>
               <option value="kg/hr">kg/hr</option>
@@ -366,14 +367,6 @@ export default function SteamTrapSurveyReportBuilder() {
 
   return (
     <div className="space-y-8">
-      {/* Privacy notice */}
-      <div className="flex items-start gap-2 text-xs text-muted bg-gray-50 border border-border rounded-lg p-3 print:hidden">
-        <svg className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z" />
-        </svg>
-        <span>Your survey data is processed locally in your browser and is not uploaded or stored.</span>
-      </div>
-
       {/* Print-only report header */}
       <div className="hidden print:block">
         <div className="text-xs font-semibold tracking-widest text-muted uppercase">UtilRivet</div>
@@ -387,10 +380,8 @@ export default function SteamTrapSurveyReportBuilder() {
       </div>
 
       {/* Survey Information */}
-      <div className="print:hidden">
-        <h2 className="text-lg font-semibold text-foreground mb-3">Survey Information</h2>
-        <div className="rounded-lg border border-border bg-background p-4">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <SectionCard title="Survey Information" className="print:hidden">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className={labelClass}>Project Name (optional)</label>
               <input
@@ -427,15 +418,12 @@ export default function SteamTrapSurveyReportBuilder() {
                 className={inputClass}
               />
             </div>
-          </div>
         </div>
-      </div>
+      </SectionCard>
 
       {/* Survey Settings */}
-      <div className="print:hidden">
-        <h2 className="text-lg font-semibold text-foreground mb-3">Survey Settings</h2>
-        <div className="rounded-lg border border-border bg-background p-4">
-          <div className="grid gap-3 sm:grid-cols-3">
+      <SectionCard title="Survey Settings" className="print:hidden">
+        <div className="grid gap-3 sm:grid-cols-3">
             <div>
               <label className={labelClass}>Operating Hours / Day</label>
               <input
@@ -470,11 +458,10 @@ export default function SteamTrapSurveyReportBuilder() {
               />
             </div>
           </div>
-          <p className="text-xs text-muted mt-3">
+          <p className="text-[13px] text-muted mt-4">
             Annual Operating Hours: <span className="font-medium text-foreground">{formatNumber(annualHours, 0)} h</span> ({settings.hoursPerDay} h/day × {settings.daysPerYear} days/year). Steam cost is entered directly as $/1,000 lb of steam.
           </p>
-        </div>
-      </div>
+      </SectionCard>
 
       {/* Print-only assumptions */}
       <div className="hidden print:block text-sm text-muted">
@@ -483,7 +470,7 @@ export default function SteamTrapSurveyReportBuilder() {
 
       {/* Validation errors */}
       {errors.length > 0 && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 print:hidden">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 print:hidden">
           <ul className="space-y-1">
             {errors.map((err, i) => (
               <li key={i} className="text-sm text-red-700">{err}</li>
@@ -493,21 +480,24 @@ export default function SteamTrapSurveyReportBuilder() {
       )}
 
       {/* Steam Trap Entries */}
-      <div>
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-3 print:hidden">
-          <h2 className="text-lg font-semibold text-foreground">Steam Trap Entries</h2>
-          <button
-            onClick={handleAddTrap}
-            className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
-          >
+      <SectionCard
+        title="Steam Trap Entries"
+        actions={
+          <button onClick={handleAddTrap} className="btn btn-primary btn-sm print:hidden">
             + Add Steam Trap
           </button>
-        </div>
-
+        }
+      >
         {traps.length === 0 ? (
-          <p className="text-sm text-muted text-center border border-dashed border-border rounded-lg py-8">
-            No steam traps added yet.<br />Add a steam trap manually or try the example survey.
-          </p>
+          <EmptyState
+            title="No steam traps added yet."
+            hint="Add a steam trap manually or try the example survey."
+            action={
+              <button onClick={handleExample} className="btn btn-secondary btn-sm">
+                Try Example
+              </button>
+            }
+          />
         ) : (
           <div className="space-y-3">
             {report.traps.map((c) => (
@@ -523,28 +513,22 @@ export default function SteamTrapSurveyReportBuilder() {
 
         {/* Action row */}
         <div className="flex flex-wrap items-center gap-3 mt-4 print:hidden">
-          <button
-            onClick={handleExample}
-            className="inline-flex items-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-surface transition-colors"
-          >
+          <button onClick={handleExample} className="btn btn-secondary btn-sm">
             Try Example
           </button>
-          <button
-            onClick={handleClear}
-            className="inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
-          >
+          <button onClick={handleClear} className="btn btn-danger btn-sm">
             Clear Survey
           </button>
         </div>
-      </div>
+      </SectionCard>
 
       {/* Survey Summary */}
       {traps.length > 0 && (
         <div ref={summaryRef} className="space-y-6">
-          <div className="rounded-lg border border-l-[3px] border-l-primary border-border bg-accent-bg/30 p-6">
-            <h2 className="text-sm font-semibold text-foreground mb-2">Estimated Annual Steam Loss Cost</h2>
+          <div className="result-card">
+            <h2 className="result-label">Estimated Annual Steam Loss Cost</h2>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-foreground">{formatCurrency(summary.originalAnnualLoss)}</span>
+              <span className="result-number">{formatCurrency(summary.originalAnnualLoss)}</span>
               <span className="text-sm text-muted">/ year</span>
             </div>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
@@ -563,37 +547,36 @@ export default function SteamTrapSurveyReportBuilder() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Total Estimated Steam Loss</div>
-              <div className="text-lg font-semibold text-foreground">{formatNumber(summary.totalSteamLossLbHr)} lb/hr</div>
+            <div className="result-tile">
+              <div className="result-tile-label">Total Estimated Steam Loss</div>
+              <div className="result-tile-value">{formatNumber(summary.totalSteamLossLbHr)} lb/hr</div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Annual Steam Loss</div>
-              <div className="text-lg font-semibold text-foreground">{formatNumber(summary.totalAnnualSteamLossLb, 0)} lb/year</div>
+            <div className="result-tile">
+              <div className="result-tile-label">Annual Steam Loss</div>
+              <div className="result-tile-value">{formatNumber(summary.totalAnnualSteamLossLb, 0)} lb/year</div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Potential Annual Savings</div>
-              <div className="text-lg font-semibold text-green-700">{formatCurrency(summary.potentialAnnualSavings)}</div>
+            <div className="result-tile">
+              <div className="result-tile-label">Potential Annual Savings</div>
+              <div className="result-tile-value text-green-700">{formatCurrency(summary.potentialAnnualSavings)}</div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Total Estimated Repair Cost</div>
-              <div className="text-lg font-semibold text-foreground">{formatCurrency(summary.totalRepairCost)}</div>
+            <div className="result-tile">
+              <div className="result-tile-label">Total Estimated Repair Cost</div>
+              <div className="result-tile-value">{formatCurrency(summary.totalRepairCost)}</div>
             </div>
             {summary.overallPaybackMonths !== null && (
-              <div className="rounded-lg border border-border bg-surface p-4">
-                <div className="text-xs text-muted mb-1">Overall Payback</div>
-                <div className="text-lg font-semibold text-foreground">{formatPayback(summary.overallPaybackMonths)}</div>
+              <div className="result-tile">
+                <div className="result-tile-label">Overall Payback</div>
+                <div className="result-tile-value">{formatPayback(summary.overallPaybackMonths)}</div>
               </div>
             )}
           </div>
 
           {/* Repair Priorities */}
-          <div>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-foreground">Repair Priorities</h2>
-              <p className="text-sm text-muted mt-1">Order: HIGH → MEDIUM → LOW → Unrated → Inspection Required; within the same level, highest annual savings first.</p>
-            </div>
-            <ol className="rounded-lg border border-border bg-background divide-y divide-border">
+          <SectionCard
+            title="Repair Priorities"
+            description="Order: HIGH → MEDIUM → LOW → Unrated → Inspection Required; within the same level, highest annual savings first."
+          >
+            <ol className="rounded-xl border border-border bg-background divide-y divide-border">
               {report.priorities.map((t, i) => (
                 <li key={t.entry.id} className="px-4 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -617,20 +600,14 @@ export default function SteamTrapSurveyReportBuilder() {
                 </li>
               ))}
             </ol>
-          </div>
+          </SectionCard>
 
           {/* Copy / Print */}
           <div className="flex flex-wrap items-center gap-3 print:hidden">
-            <button
-              onClick={handleCopy}
-              className="inline-flex items-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
-            >
+            <button onClick={handleCopy} className="btn btn-primary">
               {copied ? "Copied ✓" : "Copy Summary"}
             </button>
-            <button
-              onClick={() => window.print()}
-              className="inline-flex items-center rounded-md border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-surface transition-colors"
-            >
+            <button onClick={() => window.print()} className="btn btn-secondary">
               Print Report
             </button>
           </div>

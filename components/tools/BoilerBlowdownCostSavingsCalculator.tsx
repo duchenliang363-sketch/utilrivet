@@ -12,6 +12,8 @@ import {
   type BlowdownResult,
 } from "@/lib/boiler-blowdown/engine";
 
+import EmptyState from "@/components/EmptyState";
+
 const DEFAULTS: BlowdownInputs = {
   steamProduction: 10000,
   flowUnit: "lb/hr",
@@ -38,10 +40,8 @@ function formatNumber(n: number, decimals = 1): string {
   return n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: decimals });
 }
 
-const inputClass =
-  "w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary";
-const selectClass =
-  "rounded-lg border border-border bg-background px-2 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary";
+const inputClass = "field-input";
+const selectClass = "field-select";
 
 export default function BoilerBlowdownCostSavingsCalculator() {
   const [inputs, setInputs] = useState<BlowdownInputs>({ ...DEFAULTS });
@@ -91,19 +91,11 @@ export default function BoilerBlowdownCostSavingsCalculator() {
 
   return (
     <div className="space-y-6">
-      {/* Privacy notice */}
-      <div className="flex items-start gap-2 text-xs text-muted bg-gray-50 border border-border rounded-lg p-3">
-        <svg className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z" />
-        </svg>
-        <span>Calculations run locally in your browser. No input data is uploaded or stored.</span>
-      </div>
-
       {/* Input Grid */}
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Steam Production */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Steam Production</label>
+          <label className="field-label">Steam Production</label>
           <div className="flex gap-2">
             <input
               type="number"
@@ -127,7 +119,7 @@ export default function BoilerBlowdownCostSavingsCalculator() {
         {/* Blowdown Rates */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Current Blowdown (%)</label>
+            <label className="field-label">Current Blowdown (%)</label>
             <input
               type="number"
               min="0"
@@ -139,7 +131,7 @@ export default function BoilerBlowdownCostSavingsCalculator() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Target Blowdown (%)</label>
+            <label className="field-label">Target Blowdown (%)</label>
             <input
               type="number"
               min="0"
@@ -155,7 +147,7 @@ export default function BoilerBlowdownCostSavingsCalculator() {
         {/* Operating Hours */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Hours / day</label>
+            <label className="field-label">Hours / day</label>
             <input
               type="number"
               min="0"
@@ -166,7 +158,7 @@ export default function BoilerBlowdownCostSavingsCalculator() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Days / year</label>
+            <label className="field-label">Days / year</label>
             <input
               type="number"
               min="0"
@@ -180,7 +172,7 @@ export default function BoilerBlowdownCostSavingsCalculator() {
 
         {/* Boiler Pressure */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Boiler Pressure</label>
+          <label className="field-label">Boiler Pressure</label>
           <div className="flex gap-2">
             <input
               type="number"
@@ -203,7 +195,7 @@ export default function BoilerBlowdownCostSavingsCalculator() {
 
         {/* Feedwater Temperature */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Feedwater Temperature</label>
+          <label className="field-label">Feedwater Temperature</label>
           <div className="flex gap-2">
             <input
               type="number"
@@ -225,7 +217,7 @@ export default function BoilerBlowdownCostSavingsCalculator() {
 
         {/* Boiler Efficiency */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Boiler Efficiency (%)</label>
+          <label className="field-label">Boiler Efficiency (%)</label>
           <input
             type="number"
             min="0"
@@ -239,7 +231,7 @@ export default function BoilerBlowdownCostSavingsCalculator() {
 
         {/* Fuel Cost */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Fuel Cost ($/MMBtu)</label>
+          <label className="field-label">Fuel Cost ($/MMBtu)</label>
           <input
             type="number"
             min="0"
@@ -252,7 +244,7 @@ export default function BoilerBlowdownCostSavingsCalculator() {
 
         {/* Water + Sewer Cost */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Water + Sewer Cost ($/1,000 gal)</label>
+          <label className="field-label">Water + Sewer Cost ($/1,000 gal)</label>
           <input
             type="number"
             min="0"
@@ -261,13 +253,13 @@ export default function BoilerBlowdownCostSavingsCalculator() {
             onChange={(e) => update("waterCost", parseFloat(e.target.value) || 0)}
             className={inputClass}
           />
-          <p className="text-xs text-muted mt-1">Optional. Leave 0 to exclude water savings.</p>
+          <p className="field-help">Optional. Leave 0 to exclude water savings.</p>
         </div>
       </div>
 
       {/* Validation Errors */}
       {validationErrors.length > 0 && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
           <ul className="space-y-1">
             {validationErrors.map((err, i) => (
               <li key={i} className="text-sm text-red-700">{err}</li>
@@ -278,78 +270,75 @@ export default function BoilerBlowdownCostSavingsCalculator() {
 
       {/* Buttons */}
       <div className="flex flex-wrap items-center gap-3">
-        <button
-          onClick={handleCalculate}
-          className="inline-flex items-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
-        >
+        <button onClick={handleCalculate} className="btn btn-primary">
           Calculate
         </button>
-        <button
-          onClick={handleExample}
-          className="inline-flex items-center rounded-md border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-surface transition-colors"
-        >
+        <button onClick={handleExample} className="btn btn-secondary">
           Try Example
         </button>
-        <button
-          onClick={handleReset}
-          className="inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
-        >
+        <button onClick={handleReset} className="btn btn-ghost">
           Reset
         </button>
       </div>
 
       {/* Empty state */}
       {!hasCalculated && (
-        <p className="text-sm text-muted text-center py-4">
-          Enter your boiler parameters or try the example to see estimated savings.
-        </p>
+        <EmptyState
+          title="No results yet"
+          hint="Enter your boiler parameters or try the example to see estimated savings."
+          action={
+            <button onClick={handleExample} className="btn btn-secondary btn-sm">
+              Try Example
+            </button>
+          }
+        />
       )}
 
       {/* Results */}
       {displayResult && hasCalculated && (
         <div ref={resultsRef} className="space-y-6">
           {/* Main result */}
-          <div className="rounded-lg border border-l-[3px] border-l-primary border-border bg-accent-bg/30 p-6">
-            <h3 className="text-sm font-semibold text-foreground mb-2">Estimated Annual Savings</h3>
+          <div className="result-card">
+            <h3 className="result-label">Estimated Annual Savings</h3>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-foreground">{formatCurrency(displayResult.totalAnnualSavingsUSD)}</span>
+              <span className="result-number">{formatCurrency(displayResult.totalAnnualSavingsUSD)}</span>
               <span className="text-sm text-muted">/ year</span>
             </div>
           </div>
 
           {/* Detail grid */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Estimated Fuel Savings</div>
-              <div className="text-lg font-semibold text-green-700">{formatCurrency(displayResult.fuelSavingsUSD)}</div>
+            <div className="result-tile">
+              <div className="result-tile-label">Estimated Fuel Savings</div>
+              <div className="result-tile-value text-green-700">{formatCurrency(displayResult.fuelSavingsUSD)}</div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Estimated Water/Sewer Savings</div>
-              <div className="text-lg font-semibold text-green-700">{formatCurrency(displayResult.waterSavingsUSD)}</div>
+            <div className="result-tile">
+              <div className="result-tile-label">Estimated Water/Sewer Savings</div>
+              <div className="result-tile-value text-green-700">{formatCurrency(displayResult.waterSavingsUSD)}</div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Annual Heat/Energy Saved</div>
-              <div className="text-lg font-semibold text-foreground">{formatNumber(displayResult.annualHeatSavedMMBtu)} MMBtu</div>
+            <div className="result-tile">
+              <div className="result-tile-label">Annual Heat/Energy Saved</div>
+              <div className="result-tile-value">{formatNumber(displayResult.annualHeatSavedMMBtu)} MMBtu</div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Annual Water Saved</div>
-              <div className="text-lg font-semibold text-foreground">{formatNumber(displayResult.annualWaterSavedGal, 0)} gal</div>
+            <div className="result-tile">
+              <div className="result-tile-label">Annual Water Saved</div>
+              <div className="result-tile-value">{formatNumber(displayResult.annualWaterSavedGal, 0)} gal</div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Blowdown Reduction</div>
-              <div className="text-lg font-semibold text-foreground">{formatNumber(fromLbHr(displayResult.blowdownReductionLbHr, flowUnit))} {flowUnit}</div>
+            <div className="result-tile">
+              <div className="result-tile-label">Blowdown Reduction</div>
+              <div className="result-tile-value">{formatNumber(fromLbHr(displayResult.blowdownReductionLbHr, flowUnit))} {flowUnit}</div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Current Blowdown Flow</div>
-              <div className="text-lg font-semibold text-foreground">{formatNumber(fromLbHr(displayResult.currentBlowdownLbHr, flowUnit))} {flowUnit}</div>
+            <div className="result-tile">
+              <div className="result-tile-label">Current Blowdown Flow</div>
+              <div className="result-tile-value">{formatNumber(fromLbHr(displayResult.currentBlowdownLbHr, flowUnit))} {flowUnit}</div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Target Blowdown Flow</div>
-              <div className="text-lg font-semibold text-foreground">{formatNumber(fromLbHr(displayResult.targetBlowdownLbHr, flowUnit))} {flowUnit}</div>
+            <div className="result-tile">
+              <div className="result-tile-label">Target Blowdown Flow</div>
+              <div className="result-tile-value">{formatNumber(fromLbHr(displayResult.targetBlowdownLbHr, flowUnit))} {flowUnit}</div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Annual Operating Hours</div>
-              <div className="text-lg font-semibold text-foreground">{formatNumber(displayResult.annualHours, 0)} h</div>
+            <div className="result-tile">
+              <div className="result-tile-label">Annual Operating Hours</div>
+              <div className="result-tile-value">{formatNumber(displayResult.annualHours, 0)} h</div>
             </div>
           </div>
 

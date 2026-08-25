@@ -1,8 +1,11 @@
+export type ToolType = "Calculator" | "Comparison" | "Checker" | "Workflow";
+
 export interface Tool {
   slug: string;
   name: string;
   description: string;
   category: string;
+  toolType: ToolType;
   status: "active" | "draft";
   featured?: boolean;
 }
@@ -11,15 +14,17 @@ export const tools: Tool[] = [
   {
     slug: "percentage-calculator",
     name: "Percentage Calculator",
-    description: "Calculate percentages quickly.",
-    category: "Calculators",
+    description: "Calculate percentages, percentage changes and proportions in seconds.",
+    category: "General",
+    toolType: "Calculator",
     status: "active",
   },
   {
     slug: "production-line-quote-comparator",
     name: "Production Line Quote Comparator",
-    description: "Compare machinery quotations apples-to-apples.",
-    category: "Operations",
+    description: "Compare machinery quotations apples-to-apples: scope, specs, terms and pricing in one matrix.",
+    category: "Business & Operations",
+    toolType: "Comparison",
     status: "active",
     featured: true,
   },
@@ -27,65 +32,76 @@ export const tools: Tool[] = [
     slug: "business-document-difference-checker",
     name: "Business Document Difference Checker",
     description: "Compare two business documents and spot important changes in prices, quantities, terms and scope.",
-    category: "Operations",
+    category: "Business & Operations",
+    toolType: "Checker",
     status: "active",
   },
   {
     slug: "compressed-air-leak-cost-calculator",
     name: "Compressed Air Leak Cost Calculator",
     description: "Estimate the annual energy and electricity cost of a compressed air leak.",
-    category: "Manufacturing",
+    category: "Manufacturing & Energy",
+    toolType: "Calculator",
     status: "active",
   },
   {
     slug: "supplier-quote-completeness-checker",
     name: "Supplier Quote Completeness Checker",
     description: "Check a supplier quotation for missing commercial terms before comparing or approving it.",
-    category: "Operations",
+    category: "Business & Operations",
+    toolType: "Checker",
     status: "active",
   },
   {
     slug: "boiler-blowdown-cost-savings-calculator",
     name: "Boiler Blowdown Cost & Savings Calculator",
     description: "Estimate boiler blowdown energy loss, water waste and annual cost savings from reducing blowdown rates.",
-    category: "Manufacturing",
+    category: "Manufacturing & Energy",
+    toolType: "Calculator",
     status: "active",
   },
   {
     slug: "condensate-return-savings-calculator",
     name: "Condensate Return Savings Calculator",
     description: "Estimate fuel, water and wastewater savings from increasing condensate return in an industrial steam system.",
-    category: "Manufacturing",
+    category: "Manufacturing & Energy",
+    toolType: "Calculator",
     status: "active",
   },
   {
     slug: "compressed-air-leak-survey-report-builder",
     name: "Compressed Air Leak Survey Report Builder",
     description: "Record multiple compressed air leaks, estimate annual losses and prioritize repairs in a simple survey report.",
-    category: "Manufacturing",
+    category: "Manufacturing & Energy",
+    toolType: "Workflow",
     status: "active",
   },
   {
     slug: "steam-trap-survey-report-builder",
     name: "Steam Trap Survey Report Builder",
     description: "Record steam traps and their condition, estimate annual steam loss costs and prioritize repairs in a printable survey report.",
-    category: "Manufacturing",
+    category: "Manufacturing & Energy",
+    toolType: "Workflow",
     status: "active",
   },
 ];
 
 export const categories = [
-  "Calculators",
-  "Estimators",
-  "Compliance",
-  "Operations",
-  "Finance",
-  "Productivity",
-  "Other",
+  "Business & Operations",
+  "Manufacturing & Energy",
+  "General",
 ] as const;
+
+export function categorySlug(category: string): string {
+  return category.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+}
 
 export function getActiveTools(): Tool[] {
   return tools.filter((t) => t.status === "active");
+}
+
+export function getToolsByCategory(category: string): Tool[] {
+  return getActiveTools().filter((t) => t.category === category);
 }
 
 export function getToolBySlug(slug: string): Tool | undefined {

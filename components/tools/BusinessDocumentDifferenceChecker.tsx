@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { compareDocuments, type DiffResult, type DiffItem, type ChangeType } from "@/lib/doc-diff/engine";
 import { demoDocA, demoDocB } from "@/lib/doc-diff/demo-data";
+import EmptyState from "@/components/EmptyState";
 
 // ─── Status Badge ──────────────────────────────────────────
 
@@ -61,7 +62,7 @@ function DiffRow({ item }: { item: DiffItem }) {
 
 function ImportantChangeCard({ item }: { item: DiffItem }) {
   return (
-    <div className="rounded-lg border border-border bg-background p-4">
+    <div className="rounded-xl border border-border bg-background p-4">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-semibold tracking-wide text-primary uppercase">{item.key}</span>
         <StatusBadge type={item.type} />
@@ -127,37 +128,29 @@ export default function BusinessDocumentDifferenceChecker() {
 
   return (
     <div className="space-y-6">
-      {/* Privacy notice */}
-      <div className="flex items-start gap-2 text-xs text-muted bg-gray-50 border border-border rounded-lg p-3">
-        <svg className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z" />
-        </svg>
-        <span>Your document text is processed locally in your browser and is not uploaded or stored.</span>
-      </div>
-
       {/* Input area */}
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Document A */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Document A</label>
-          <p className="text-xs text-muted mb-1.5">Original or earlier version</p>
+          <label className="field-label">Document A</label>
+          <p className="text-[13px] text-muted mb-2">Original or earlier version</p>
           <textarea
             value={docA}
             onChange={(e) => setDocA(e.target.value)}
             placeholder={"Total Price: USD 80,000\nDelivery Time: 45 days\nWarranty: 24 months"}
-            className="w-full h-44 rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y font-mono"
+            className="field-textarea h-44 font-mono"
           />
         </div>
 
         {/* Document B */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Document B</label>
-          <p className="text-xs text-muted mb-1.5">Revised or newer version</p>
+          <label className="field-label">Document B</label>
+          <p className="text-[13px] text-muted mb-2">Revised or newer version</p>
           <textarea
             value={docB}
             onChange={(e) => setDocB(e.target.value)}
             placeholder={"Total Price: USD 86,000\nDelivery Time: 60 days\nWarranty: 12 months"}
-            className="w-full h-44 rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y font-mono"
+            className="field-textarea h-44 font-mono"
           />
         </div>
       </div>
@@ -167,21 +160,15 @@ export default function BusinessDocumentDifferenceChecker() {
         <button
           onClick={handleCompare}
           disabled={!docA.trim() || !docB.trim()}
-          className="inline-flex items-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="btn btn-primary"
         >
           Compare Documents
         </button>
-        <button
-          onClick={handleDemo}
-          className="inline-flex items-center rounded-md border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-surface transition-colors"
-        >
+        <button onClick={handleDemo} className="btn btn-secondary">
           Try Demo
         </button>
         {(docA || docB) && (
-          <button
-            onClick={handleClear}
-            className="inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
-          >
+          <button onClick={handleClear} className="btn btn-danger">
             Clear
           </button>
         )}
@@ -189,16 +176,22 @@ export default function BusinessDocumentDifferenceChecker() {
 
       {/* Empty state hint */}
       {!result && (
-        <p className="text-sm text-muted text-center py-4">
-          Paste two document versions or try the demo to see how it works.
-        </p>
+        <EmptyState
+          title="No comparison yet"
+          hint="Paste two document versions or try the demo to see how it works."
+          action={
+            <button onClick={handleDemo} className="btn btn-secondary btn-sm">
+              Try Demo
+            </button>
+          }
+        />
       )}
 
       {/* Results */}
       {result && (
         <div ref={resultsRef} className="space-y-6">
           {/* Comparison Summary */}
-          <div className="rounded-lg border border-border bg-surface p-5">
+          <div className="rounded-xl border border-border bg-surface p-5">
             <h3 className="text-sm font-semibold text-foreground mb-4">Comparison Summary</h3>
             <div className="flex items-baseline gap-6">
               <div className="flex items-baseline gap-2">
@@ -245,7 +238,7 @@ export default function BusinessDocumentDifferenceChecker() {
 
           {/* All differences (collapsible) */}
           {showAllItems && (
-            <div className="rounded-lg border border-border overflow-hidden">
+            <div className="rounded-xl border border-border overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
                 <h3 className="text-sm font-semibold text-foreground">All Items</h3>
                 {result.summary.unchanged > 0 && (

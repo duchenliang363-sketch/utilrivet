@@ -38,32 +38,32 @@ export default function ToolPageClient({ tool, relatedTools }: ToolPageClientPro
 
   if (!content || !ToolComponent) {
     return (
-      <ToolLayout name={tool.name} subtitle={tool.description}>
+      <ToolLayout tool={tool} subtitle={tool.description}>
         <p className="text-sm text-muted">This tool is coming soon.</p>
       </ToolLayout>
     );
   }
 
   const seoContent = (
-    <div className="space-y-6">
+    <>
       {content.seoSections.map((section) => (
         <section key={section.title}>
-          <h2 className="text-lg font-semibold text-foreground">{section.title}</h2>
-          <p className="mt-2 text-sm text-muted leading-relaxed">{section.content}</p>
+          <h2>{section.title}</h2>
+          <p className="mt-3">{section.content}</p>
         </section>
       ))}
-    </div>
+    </>
   );
 
   return (
     <ToolLayout
-      name={tool.name}
+      tool={tool}
       subtitle={content.subtitle}
       seoContent={seoContent}
+      faq={<FAQ items={content.faq} />}
+      related={<RelatedTools tools={relatedTools} />}
     >
       <ToolComponent />
-      <FAQ items={content.faq} />
-      <RelatedTools tools={relatedTools} />
     </ToolLayout>
   );
 }

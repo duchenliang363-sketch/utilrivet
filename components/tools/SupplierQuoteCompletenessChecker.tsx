@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { checkQuote, buildQuestions, type QuoteCheckResult, type FieldStatus } from "@/lib/quote-checker/engine";
 import { demoQuote } from "@/lib/quote-checker/demo-data";
+import EmptyState from "@/components/EmptyState";
 
 // ─── Status Badge ──────────────────────────────────────────
 
@@ -76,25 +77,17 @@ export default function SupplierQuoteCompletenessChecker() {
 
   return (
     <div className="space-y-6">
-      {/* Privacy notice */}
-      <div className="flex items-start gap-2 text-xs text-muted bg-gray-50 border border-border rounded-lg p-3">
-        <svg className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z" />
-        </svg>
-        <span>Your quote text is processed locally in your browser and is not uploaded or stored.</span>
-      </div>
-
       {/* Input area */}
       <div>
-        <label className="block text-sm font-medium text-foreground mb-1">Supplier Quote</label>
-        <p className="text-xs text-muted mb-1.5">
+        <label className="field-label">Supplier Quote</label>
+        <p className="text-[13px] text-muted mb-2">
           Paste the text from a supplier quotation, proposal, or commercial offer.
         </p>
         <textarea
           value={quoteText}
           onChange={(e) => setQuoteText(e.target.value)}
           placeholder={"Supplier: ABC Machinery\nQuantity: 2 units\nUnit Price: USD 42,000\nTotal Price: USD 84,000\nDelivery: 45 days\nPayment: 30% deposit, 70% before shipment\nWarranty: 12 months\nValidity: 30 days"}
-          className="w-full h-56 rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y font-mono"
+          className="field-textarea h-56 font-mono"
         />
       </div>
 
@@ -103,21 +96,15 @@ export default function SupplierQuoteCompletenessChecker() {
         <button
           onClick={handleCheck}
           disabled={!quoteText.trim()}
-          className="inline-flex items-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="btn btn-primary"
         >
           Check Quote
         </button>
-        <button
-          onClick={handleExample}
-          className="inline-flex items-center rounded-md border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-surface transition-colors"
-        >
+        <button onClick={handleExample} className="btn btn-secondary">
           Try Example
         </button>
         {quoteText && (
-          <button
-            onClick={handleClear}
-            className="inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
-          >
+          <button onClick={handleClear} className="btn btn-danger">
             Clear
           </button>
         )}
@@ -125,19 +112,25 @@ export default function SupplierQuoteCompletenessChecker() {
 
       {/* Empty state hint */}
       {!result && (
-        <p className="text-sm text-muted text-center py-4">
-          Paste a supplier quotation or try the example to see how it works.
-        </p>
+        <EmptyState
+          title="No check yet"
+          hint="Paste a supplier quotation or try the example to see how it works."
+          action={
+            <button onClick={handleExample} className="btn btn-secondary btn-sm">
+              Try Example
+            </button>
+          }
+        />
       )}
 
       {/* Results */}
       {result && (
         <div ref={resultsRef} className="space-y-6">
           {/* Quote Completeness */}
-          <div className="rounded-lg border border-border bg-surface p-5">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Quote Completeness</h3>
+          <div className="result-card">
+            <h3 className="result-label">Quote Completeness</h3>
             <div className="flex items-baseline gap-3">
-              <span className="text-4xl font-bold text-foreground">{result.score}%</span>
+              <span className="result-number">{result.score}%</span>
               <span className="text-sm font-medium text-primary">{result.level}</span>
             </div>
             <div className="mt-3 h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
@@ -159,7 +152,7 @@ export default function SupplierQuoteCompletenessChecker() {
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {itemsToReview.map((item) => (
-                  <div key={item.id} className="rounded-lg border border-border bg-background p-4 flex items-center justify-between gap-3">
+                  <div key={item.id} className="rounded-xl border border-border bg-background p-4 flex items-center justify-between gap-3">
                     <span className="text-sm font-medium text-foreground">{item.label}</span>
                     <StatusBadge status={item.status} />
                   </div>
@@ -178,12 +171,12 @@ export default function SupplierQuoteCompletenessChecker() {
                 </div>
                 <button
                   onClick={handleCopy}
-                  className="inline-flex items-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-surface transition-colors"
+                  className="btn btn-secondary btn-sm"
                 >
                   {copied ? "Copied ✓" : "Copy Questions"}
                 </button>
               </div>
-              <ol className="rounded-lg border border-border bg-background divide-y divide-border">
+              <ol className="rounded-xl border border-border bg-background divide-y divide-border">
                 {questions.map((q, i) => (
                   <li key={i} className="flex items-start gap-3 px-4 py-3">
                     <span className="text-xs font-semibold text-primary mt-0.5 shrink-0">{i + 1}.</span>
@@ -195,7 +188,7 @@ export default function SupplierQuoteCompletenessChecker() {
           )}
 
           {/* All Checks */}
-          <div className="rounded-lg border border-border overflow-hidden">
+          <div className="rounded-xl border border-border overflow-hidden">
             <div className="px-4 py-3 border-b border-border bg-surface">
               <h3 className="text-sm font-semibold text-foreground">All Checks</h3>
             </div>

@@ -66,16 +66,16 @@ export default function PercentageCalculator() {
   const current = labels[mode];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Mode selector */}
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => { setMode("whatPct"); reset(); }}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+          className={`inline-flex h-11 items-center rounded-lg border px-4 text-[13px] font-medium transition-colors ${
             mode === "whatPct"
-              ? "border-primary bg-primary/8 text-primary"
-              : "border-border text-muted hover:text-foreground"
+              ? "border-primary bg-primary-50 text-primary"
+              : "border-border text-muted hover:border-gray-400 hover:text-foreground"
           }`}
         >
           X is what % of Y?
@@ -83,10 +83,10 @@ export default function PercentageCalculator() {
         <button
           type="button"
           onClick={() => { setMode("whatVal"); reset(); }}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+          className={`inline-flex h-11 items-center rounded-lg border px-4 text-[13px] font-medium transition-colors ${
             mode === "whatVal"
-              ? "border-primary bg-primary/8 text-primary"
-              : "border-border text-muted hover:text-foreground"
+              ? "border-primary bg-primary-50 text-primary"
+              : "border-border text-muted hover:border-gray-400 hover:text-foreground"
           }`}
         >
           What is X% of Y?
@@ -94,10 +94,10 @@ export default function PercentageCalculator() {
         <button
           type="button"
           onClick={() => { setMode("pctChange"); reset(); }}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+          className={`inline-flex h-11 items-center rounded-lg border px-4 text-[13px] font-medium transition-colors ${
             mode === "pctChange"
-              ? "border-primary bg-primary/8 text-primary"
-              : "border-border text-muted hover:text-foreground"
+              ? "border-primary bg-primary-50 text-primary"
+              : "border-border text-muted hover:border-gray-400 hover:text-foreground"
           }`}
         >
           % change from X to Y
@@ -107,7 +107,7 @@ export default function PercentageCalculator() {
       {/* Inputs */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="val-a" className="block text-sm font-medium text-foreground mb-1">
+          <label htmlFor="val-a" className="field-label">
             {current.a}
           </label>
           <input
@@ -115,12 +115,12 @@ export default function PercentageCalculator() {
             type="number"
             value={valA}
             onChange={(e) => setValA(e.target.value)}
-            className="w-full rounded-md border border-border px-3 py-2 text-sm text-foreground bg-background focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+            className="field-input"
             placeholder={current.a}
           />
         </div>
         <div>
-          <label htmlFor="val-b" className="block text-sm font-medium text-foreground mb-1">
+          <label htmlFor="val-b" className="field-label">
             {current.b}
           </label>
           <input
@@ -128,35 +128,27 @@ export default function PercentageCalculator() {
             type="number"
             value={valB}
             onChange={(e) => setValB(e.target.value)}
-            className="w-full rounded-md border border-border px-3 py-2 text-sm text-foreground bg-background focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+            className="field-input"
             placeholder={current.b}
           />
         </div>
       </div>
 
       {/* Action */}
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={calculate}
-          className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
-        >
+      <div className="flex flex-wrap gap-3">
+        <button type="button" onClick={calculate} className="btn btn-primary">
           {current.action}
         </button>
-        <button
-          type="button"
-          onClick={reset}
-          className="rounded-md border border-border px-4 py-2 text-sm font-medium text-muted hover:text-foreground transition-colors"
-        >
+        <button type="button" onClick={reset} className="btn btn-ghost">
           Reset
         </button>
       </div>
 
       {/* Result */}
       {result && (
-        <div className="rounded-md border border-border bg-surface p-4">
-          <p className="text-xs text-muted mb-1">Result</p>
-          <p className="text-lg font-semibold text-foreground">{result}</p>
+        <div className="result-card">
+          <p className="result-label">Result</p>
+          <p className="result-number">{result}</p>
         </div>
       )}
     </div>

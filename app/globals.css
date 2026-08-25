@@ -46,12 +46,269 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Subtle card hover lift */
+/* ────────────────────────────────────────────────
+   Card hover lift (Tool Card V2)
+   ──────────────────────────────────────────────── */
 .card-hover {
   transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 .card-hover:hover {
   border-color: var(--color-border-strong);
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  box-shadow: 0 4px 12px -2px rgb(15 23 42 / 0.06), 0 1px 3px 0 rgb(15 23 42 / 0.04);
   transform: translateY(-1px);
+}
+
+/* ────────────────────────────────────────────────
+   Form system — unified inputs, labels, help text
+   ──────────────────────────────────────────────── */
+.field-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-foreground);
+  margin-bottom: 6px;
+}
+
+.field-help {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-muted);
+  margin-top: 6px;
+}
+
+.field-input,
+.field-select,
+.field-textarea {
+  width: 100%;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-background);
+  font-size: 14px;
+  color: var(--color-foreground);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field-input,
+.field-select {
+  height: 44px;
+  padding: 0 12px;
+}
+
+.field-textarea {
+  padding: 10px 12px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.field-input::placeholder,
+.field-textarea::placeholder {
+  color: var(--color-gray-400);
+}
+
+.field-input:focus,
+.field-select:focus,
+.field-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 0.12);
+}
+
+.field-input:disabled,
+.field-select:disabled,
+.field-textarea:disabled {
+  background: var(--color-surface);
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+/* ────────────────────────────────────────────────
+   Button system — primary / secondary / ghost
+   ──────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-sm {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #ffffff;
+}
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-secondary {
+  background: var(--color-background);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-foreground);
+}
+.btn-secondary:hover {
+  background: var(--color-surface);
+  border-color: var(--color-gray-400);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-muted);
+  padding: 0 10px;
+}
+.btn-ghost:hover {
+  color: var(--color-foreground);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--color-muted);
+  padding: 0 10px;
+}
+.btn-danger:hover {
+  color: #dc2626;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ────────────────────────────────────────────────
+   Tool Workspace container
+   ──────────────────────────────────────────────── */
+.workspace {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+@media (min-width: 640px) {
+  .workspace {
+    padding: 32px;
+  }
+}
+
+/* ────────────────────────────────────────────────
+   Section Card (workflow tools)
+   ──────────────────────────────────────────────── */
+.section-card {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+.section-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+.section-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+.section-card-body {
+  padding: 20px;
+}
+
+/* ────────────────────────────────────────────────
+   Result card
+   ──────────────────────────────────────────────── */
+.result-card {
+  background: var(--color-accent-bg);
+  border: 1px solid var(--color-primary-100);
+  border-radius: 12px;
+  padding: 24px;
+}
+.result-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-foreground);
+  margin-bottom: 8px;
+}
+.result-number {
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-foreground);
+}
+@media (min-width: 640px) {
+  .result-number {
+    font-size: 38px;
+  }
+}
+
+/* Secondary result tile */
+.result-tile {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.result-tile-label {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-bottom: 4px;
+}
+.result-tile-value {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+/* ────────────────────────────────────────────────
+   Type badge (CALCULATOR / WORKFLOW / …)
+   ──────────────────────────────────────────────── */
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gray-600);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+
+/* ────────────────────────────────────────────────
+   SEO content area
+   ──────────────────────────────────────────────── */
+.seo-content {
+  max-width: 736px;
+}
+.seo-content h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+@media (min-width: 640px) {
+  .seo-content h2 {
+    font-size: 28px;
+  }
+}
+.seo-content p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--color-gray-600);
 }

@@ -11,6 +11,8 @@ import {
   type CondensateReturnResult,
 } from "@/lib/condensate-return/engine";
 
+import EmptyState from "@/components/EmptyState";
+
 const DEFAULTS: CondensateReturnInputs = {
   steamProduction: 10000,
   flowUnit: "lb/hr",
@@ -47,10 +49,8 @@ function formatPayback(months: number): string {
   return `${years}y ${remainingMonths}m`;
 }
 
-const inputClass =
-  "w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary";
-const selectClass =
-  "rounded-lg border border-border bg-background px-2 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary";
+const inputClass = "field-input";
+const selectClass = "field-select";
 
 export default function CondensateReturnSavingsCalculator() {
   const [inputs, setInputs] = useState<CondensateReturnInputs>({ ...DEFAULTS });
@@ -105,27 +105,6 @@ export default function CondensateReturnSavingsCalculator() {
 
   return (
     <div className="space-y-6">
-      {/* Privacy notice */}
-      <div className="flex items-start gap-2 text-xs text-muted bg-gray-50 border border-border rounded-lg p-3">
-        <svg
-          className="h-4 w-4 text-gray-400 shrink-0 mt-0.5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z"
-          />
-        </svg>
-        <span>
-          Calculations run locally in your browser. No input data is uploaded or
-          stored.
-        </span>
-      </div>
-
       {/* How It Works */}
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="flex items-start gap-2 text-xs text-muted">
@@ -152,7 +131,7 @@ export default function CondensateReturnSavingsCalculator() {
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Steam Production */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
+          <label className="field-label">
             Steam Production
           </label>
           <div className="flex gap-2">
@@ -180,7 +159,7 @@ export default function CondensateReturnSavingsCalculator() {
         {/* Condensate Return Rates */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
+            <label className="field-label">
               Current Return (%)
             </label>
             <input
@@ -196,7 +175,7 @@ export default function CondensateReturnSavingsCalculator() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
+            <label className="field-label">
               Target Return (%)
             </label>
             <input
@@ -216,7 +195,7 @@ export default function CondensateReturnSavingsCalculator() {
         {/* Operating Hours */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
+            <label className="field-label">
               Hours / day
             </label>
             <input
@@ -231,7 +210,7 @@ export default function CondensateReturnSavingsCalculator() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
+            <label className="field-label">
               Days / year
             </label>
             <input
@@ -249,7 +228,7 @@ export default function CondensateReturnSavingsCalculator() {
 
         {/* Condensate Temperature */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
+          <label className="field-label">
             Condensate Temperature
           </label>
           <div className="flex gap-2">
@@ -275,7 +254,7 @@ export default function CondensateReturnSavingsCalculator() {
 
         {/* Makeup Water Temperature */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
+          <label className="field-label">
             Makeup Water Temperature
           </label>
           <div className="flex gap-2">
@@ -301,7 +280,7 @@ export default function CondensateReturnSavingsCalculator() {
 
         {/* Boiler Efficiency */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
+          <label className="field-label">
             Boiler Efficiency (%)
           </label>
           <input
@@ -319,7 +298,7 @@ export default function CondensateReturnSavingsCalculator() {
 
         {/* Fuel Cost */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
+          <label className="field-label">
             Fuel Cost ($/MMBtu)
           </label>
           <input
@@ -334,7 +313,7 @@ export default function CondensateReturnSavingsCalculator() {
 
         {/* Water Cost */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
+          <label className="field-label">
             Water Cost ($/1,000 gal)
           </label>
           <input
@@ -345,12 +324,12 @@ export default function CondensateReturnSavingsCalculator() {
             onChange={(e) => update("waterCost", parseFloat(e.target.value) || 0)}
             className={inputClass}
           />
-          <p className="text-xs text-muted mt-1">Optional. Leave 0 to exclude.</p>
+          <p className="field-help">Optional. Leave 0 to exclude.</p>
         </div>
 
         {/* Sewer Cost */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
+          <label className="field-label">
             Sewer / Wastewater Cost ($/1,000 gal)
           </label>
           <input
@@ -361,12 +340,12 @@ export default function CondensateReturnSavingsCalculator() {
             onChange={(e) => update("sewerCost", parseFloat(e.target.value) || 0)}
             className={inputClass}
           />
-          <p className="text-xs text-muted mt-1">Optional. Leave 0 to exclude.</p>
+          <p className="field-help">Optional. Leave 0 to exclude.</p>
         </div>
 
         {/* Project Cost */}
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
+          <label className="field-label">
             Project / Upgrade Cost ($)
           </label>
           <input
@@ -379,7 +358,7 @@ export default function CondensateReturnSavingsCalculator() {
             }
             className={inputClass}
           />
-          <p className="text-xs text-muted mt-1">
+          <p className="field-help">
             Optional. Enter to calculate payback period.
           </p>
         </div>
@@ -387,7 +366,7 @@ export default function CondensateReturnSavingsCalculator() {
 
       {/* Validation Errors */}
       {validationErrors.length > 0 && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
           <ul className="space-y-1">
             {validationErrors.map((err, i) => (
               <li key={i} className="text-sm text-red-700">{err}</li>
@@ -398,44 +377,38 @@ export default function CondensateReturnSavingsCalculator() {
 
       {/* Buttons */}
       <div className="flex flex-wrap items-center gap-3">
-        <button
-          onClick={handleCalculate}
-          className="inline-flex items-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
-        >
+        <button onClick={handleCalculate} className="btn btn-primary">
           Calculate
         </button>
-        <button
-          onClick={handleExample}
-          className="inline-flex items-center rounded-md border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-surface transition-colors"
-        >
+        <button onClick={handleExample} className="btn btn-secondary">
           Try Example
         </button>
-        <button
-          onClick={handleReset}
-          className="inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
-        >
+        <button onClick={handleReset} className="btn btn-ghost">
           Reset
         </button>
       </div>
 
       {/* Empty state */}
       {!hasCalculated && (
-        <p className="text-sm text-muted text-center py-4">
-          Enter your steam system parameters or try the example to see estimated
-          savings.
-        </p>
+        <EmptyState
+          title="No results yet"
+          hint="Enter your steam system parameters or try the example to see estimated savings."
+          action={
+            <button onClick={handleExample} className="btn btn-secondary btn-sm">
+              Try Example
+            </button>
+          }
+        />
       )}
 
       {/* Results */}
       {displayResult && hasCalculated && (
         <div ref={resultsRef} className="space-y-6">
           {/* Main result */}
-          <div className="rounded-lg border border-l-[3px] border-l-primary border-border bg-accent-bg/30 p-6">
-            <h3 className="text-sm font-semibold text-foreground mb-2">
-              Estimated Annual Savings
-            </h3>
+          <div className="result-card">
+            <h3 className="result-label">Estimated Annual Savings</h3>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-foreground">
+              <span className="result-number">
                 {formatCurrency(displayResult.totalAnnualSavingsUSD)}
               </span>
               <span className="text-sm text-muted">/ year</span>
@@ -444,64 +417,60 @@ export default function CondensateReturnSavingsCalculator() {
 
           {/* Payback Period (if project cost provided) */}
           {displayResult.paybackMonths !== null && (
-            <div className="rounded-lg border border-l-[3px] border-l-blue-500 border-border bg-blue-50/30 p-6">
-              <h3 className="text-sm font-semibold text-foreground mb-2">
-                Estimated Payback
-              </h3>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-blue-700">
-                  {formatPayback(displayResult.paybackMonths)}
-                </span>
+            <div className="result-tile">
+              <div className="result-tile-label">Estimated Payback</div>
+              <div className="text-2xl font-bold text-foreground">
+                {formatPayback(displayResult.paybackMonths)}
               </div>
             </div>
           )}
 
           {/* Detail grid */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Fuel Savings</div>
-              <div className="text-lg font-semibold text-green-700">
+            <div className="result-tile">
+              <div className="result-tile-label">Fuel Savings</div>
+              <div className="result-tile-value text-green-700">
                 {formatCurrency(displayResult.fuelSavingsUSD)}
               </div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Water Savings</div>
-              <div className="text-lg font-semibold text-green-700">
+            <div className="result-tile">
+              <div className="result-tile-label">Water Savings</div>
+              <div className="result-tile-value text-green-700">
                 {formatCurrency(displayResult.waterSavingsUSD)}
               </div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Sewer Savings</div>
-              <div className="text-lg font-semibold text-green-700">
+            <div className="result-tile">
+              <div className="result-tile-label">Sewer Savings</div>
+              <div className="result-tile-value text-green-700">
                 {formatCurrency(displayResult.sewerSavingsUSD)}
               </div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">
+            <div className="result-tile">
+              <div className="result-tile-label">
                 Additional Condensate Returned
               </div>
-              <div className="text-lg font-semibold text-foreground">
+              <div className="result-tile-value">
                 {formatNumber(fromLbHr(displayResult.additionalCondensateLb, flowUnit), 0)}{" "}
                 {flowUnit.replace("/hr", "")}/year
               </div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Water Saved</div>
-              <div className="text-lg font-semibold text-foreground">
+            <div className="result-tile">
+              <div className="result-tile-label">Water Saved</div>
+              <div className="result-tile-value">
                 {formatNumber(displayResult.waterSavedGal, 0)} gal
               </div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">Recovered Energy</div>
-              <div className="text-lg font-semibold text-foreground">
+            <div className="result-tile">
+              <div className="result-tile-label">Recovered Energy</div>
+              <div className="result-tile-value">
                 {formatNumber(displayResult.recoveredHeatMMBtu)} MMBtu
               </div>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-4">
-              <div className="text-xs text-muted mb-1">
+            <div className="result-tile">
+              <div className="result-tile-label">
                 Annual Operating Hours
               </div>
-              <div className="text-lg font-semibold text-foreground">
+              <div className="result-tile-value">
                 {formatNumber(displayResult.annualHours, 0)} h
               </div>
             </div>
