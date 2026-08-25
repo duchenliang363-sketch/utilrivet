@@ -175,6 +175,75 @@ export const toolContents: Record<string, ToolContent> = {
       },
     ],
   },
+  "compressed-air-leak-cost-calculator": {
+    slug: "compressed-air-leak-cost-calculator",
+    subtitle:
+      "Estimate the annual energy and electricity cost of a compressed air leak. Calculate leak power, wasted kWh, potential savings and repair payback.",
+    seoSections: [
+      {
+        title: "What is a Compressed Air Leak Cost Calculator?",
+        content:
+          "A compressed air leak cost calculator is a tool that estimates how much money a compressed air leak wastes in energy and electricity over time. Compressed air is one of the most expensive utilities in manufacturing, and even small leaks can cost thousands of dollars per year. This calculator helps maintenance managers, plant managers, and energy auditors quantify the financial impact of air leaks and prioritize repairs based on estimated savings and payback period.",
+      },
+      {
+        title: "Why Do Compressed Air Leaks Cost Money?",
+        content:
+          "Compressed air systems require significant electrical energy to operate. When air leaks from the system, the compressor must work harder and run longer to maintain pressure, consuming more electricity. A single small leak can waste enough energy to cost hundreds or thousands of dollars annually. In many facilities, compressed air leaks account for 20-30% of total compressed air production, representing a major opportunity for energy savings and cost reduction.",
+      },
+      {
+        title: "How is Compressed Air Leak Cost Calculated?",
+        content:
+          "The calculator uses four key inputs: leak flow rate (in CFM, L/s, or m³/min), operating hours per day and days per year, electricity rate per kWh, and compressor specific power (kW per 100 CFM). It calculates the leak power consumption, annual energy waste in kWh, and converts this to an annual cost using your electricity rate. If you provide an estimated repair cost, it also calculates the payback period to help you prioritize which leaks to fix first.",
+      },
+      {
+        title: "How Can Manufacturers Reduce Compressed Air Leakage?",
+        content:
+          "Manufacturers can reduce compressed air leakage through regular leak detection surveys using ultrasonic detectors, prompt repair of identified leaks, proper maintenance of fittings and hoses, installation of automatic drain valves, optimization of system pressure to match actual needs, and employee training on leak awareness. Many facilities find that implementing a systematic leak management program pays for itself within months through reduced energy costs.",
+      },
+    ],
+    faq: [
+      {
+        question: "What is a compressed air leak cost calculator?",
+        answer:
+          "It is a tool that estimates the annual energy and electricity cost of a compressed air leak based on leak flow rate, operating hours, electricity rate, and compressor specific power. It helps you quantify the financial impact of air leaks and prioritize repairs.",
+      },
+      {
+        question: "How much does a compressed air leak cost?",
+        answer:
+          "The cost depends on leak size, operating hours, electricity rate, and compressor efficiency. A small 1/8 inch leak at 100 PSI can cost over $2,000 per year in many facilities. Use this calculator with your specific parameters to get an accurate estimate.",
+      },
+      {
+        question: "How do you calculate compressed air leak energy loss?",
+        answer:
+          "Energy loss is calculated by converting leak flow rate to CFM, multiplying by compressor specific power (kW/100 CFM) to get leak power in kW, then multiplying by annual operating hours to get kWh, and finally multiplying by electricity rate to get annual cost.",
+      },
+      {
+        question: "What is compressor specific power?",
+        answer:
+          "Specific power is the electrical power required to produce 100 CFM of compressed air, measured in kW/100 CFM. It varies by compressor type, size, and efficiency. Typical values range from 15-25 kW/100 CFM. Use your compressor's actual specific power when available for more accurate results.",
+      },
+      {
+        question: "How accurate is this calculator?",
+        answer:
+          "This calculator provides estimates based on standard engineering formulas. Actual results may vary depending on compressor efficiency, control strategy, system pressure, operating schedule, and electricity tariff. For higher accuracy, use measured leak flow and your compressor's actual specific power.",
+      },
+      {
+        question: "Can I use CFM, L/s and m³/min?",
+        answer:
+          "Yes. The calculator accepts leak flow rate in CFM, L/s (liters per second), or m³/min (cubic meters per minute). All values are internally converted to CFM for calculation. 1 L/s ≈ 2.12 CFM and 1 m³/min ≈ 35.31 CFM.",
+      },
+      {
+        question: "How do I calculate repair payback?",
+        answer:
+          "Enter your estimated repair cost in the calculator. The tool divides repair cost by potential annual savings to calculate payback period in months and years. This helps you prioritize which leaks to fix first based on return on investment.",
+      },
+      {
+        question: "Does system pressure affect leak cost?",
+        answer:
+          "Yes. Higher system pressure increases leak flow rate and energy consumption. A leak at 120 PSI costs more than the same size leak at 80 PSI. This calculator uses leak flow rate as input, which already reflects the effect of system pressure. For more accurate results, measure leak flow at your actual operating pressure.",
+      },
+    ],
+  },
 };
 
 export function getToolContent(slug: string): ToolContent | undefined {

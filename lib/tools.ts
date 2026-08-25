@@ -30,6 +30,13 @@ export const tools: Tool[] = [
     category: "Operations",
     status: "active",
   },
+  {
+    slug: "compressed-air-leak-cost-calculator",
+    name: "Compressed Air Leak Cost Calculator",
+    description: "Estimate the annual energy and electricity cost of a compressed air leak.",
+    category: "Manufacturing",
+    status: "active",
+  },
 ];
 
 export const categories = [
