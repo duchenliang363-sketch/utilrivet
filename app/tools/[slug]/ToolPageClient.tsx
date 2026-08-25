@@ -10,6 +10,7 @@ import QuoteComparator from "@/components/tools/QuoteComparator";
 import BusinessDocumentDifferenceChecker from "@/components/tools/BusinessDocumentDifferenceChecker";
 import CompressedAirLeakCostCalculator from "@/components/tools/CompressedAirLeakCostCalculator";
 import SupplierQuoteCompletenessChecker from "@/components/tools/SupplierQuoteCompletenessChecker";
+import BoilerBlowdownCostSavingsCalculator from "@/components/tools/BoilerBlowdownCostSavingsCalculator";
 
 interface ToolPageClientProps {
   tool: Tool;
@@ -22,6 +23,7 @@ const toolComponentMap: Record<string, React.ComponentType> = {
   "business-document-difference-checker": BusinessDocumentDifferenceChecker,
   "compressed-air-leak-cost-calculator": CompressedAirLeakCostCalculator,
   "supplier-quote-completeness-checker": SupplierQuoteCompletenessChecker,
+  "boiler-blowdown-cost-savings-calculator": BoilerBlowdownCostSavingsCalculator,
 };
 
 export default function ToolPageClient({ tool, relatedTools }: ToolPageClientProps) {

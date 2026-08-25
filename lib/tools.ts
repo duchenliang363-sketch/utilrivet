@@ -44,6 +44,13 @@ export const tools: Tool[] = [
     category: "Operations",
     status: "active",
   },
+  {
+    slug: "boiler-blowdown-cost-savings-calculator",
+    name: "Boiler Blowdown Cost & Savings Calculator",
+    description: "Estimate boiler blowdown energy loss, water waste and annual cost savings from reducing blowdown rates.",
+    category: "Manufacturing",
+    status: "active",
+  },
 ];
 
 export const categories = [

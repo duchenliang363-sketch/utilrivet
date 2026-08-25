@@ -313,6 +313,70 @@ export const toolContents: Record<string, ToolContent> = {
       },
     ],
   },
+  "boiler-blowdown-cost-savings-calculator": {
+    slug: "boiler-blowdown-cost-savings-calculator",
+    subtitle:
+      "Estimate boiler blowdown energy loss, water waste and annual cost savings from reducing blowdown rates.",
+    seoSections: [
+      {
+        title: "What is a Boiler Blowdown Cost Calculator?",
+        content:
+          "A boiler blowdown cost calculator estimates how much energy, water, and money a steam boiler loses through blowdown. Blowdown is the controlled removal of concentrated boiler water to control dissolved solids, but every gallon of blowdown carries hot water and heat out of the system. This tool quantifies that blowdown energy loss and shows the potential annual savings from reducing the blowdown rate, for example through better water treatment or automatic blowdown control.",
+      },
+      {
+        title: "Why Does Boiler Blowdown Cost Money?",
+        content:
+          "Blowdown water leaves the boiler near saturation temperature, carrying both treated water and the heat used to raise it. The losses have two parts: fuel burned to heat the blowdown water from feedwater temperature to boiler temperature, and the cost of the make-up water and sewer discharge itself. On boilers with high blowdown rates, these losses can add up to thousands of dollars per year in fuel and water costs.",
+      },
+      {
+        title: "How Are Blowdown Savings Calculated?",
+        content:
+          "The calculator converts blowdown rates into blowdown flow based on steam production, then compares the current and target blowdown flows. The reduction is multiplied by the heat difference between saturated boiler water and feedwater temperature to get annual energy loss in MMBtu, which is converted into fuel cost using boiler efficiency and fuel price. Reduced blowdown flow is also converted into gallons of water saved per year and valued at your water and sewer rate.",
+      },
+      {
+        title: "How Can Plants Reduce Blowdown Losses?",
+        content:
+          "Common measures include improving feedwater quality with softeners or reverse osmosis, installing automatic blowdown control based on conductivity, recovering blowdown heat with a flash tank or heat exchanger, and fixing leaking blowdown valves. Even a few percentage points of blowdown reduction on a large boiler can meaningfully improve steam boiler efficiency and lower operating costs.",
+      },
+    ],
+    faq: [
+      {
+        question: "What is boiler blowdown?",
+        answer:
+          "Blowdown is the removal of a portion of concentrated boiler water to keep dissolved and suspended solids within safe limits. It protects the boiler but wastes hot, treated water, which is why blowdown rate is a key lever for boiler water savings and energy savings.",
+      },
+      {
+        question: "How is blowdown rate defined?",
+        answer:
+          "Blowdown rate is typically expressed as a percentage of feedwater flow. In this calculator, blowdown flow is derived from steam production using blowdown = steam × rate / (100 − rate), which is equivalent to expressing the rate as a share of feedwater.",
+      },
+      {
+        question: "What is a typical boiler blowdown rate?",
+        answer:
+          "Many industrial boilers run between 2% and 10% blowdown depending on feedwater quality and water treatment. Boilers with poor feedwater treatment may run higher. Lower is better for efficiency, but blowdown must stay high enough to control dissolved solids safely.",
+      },
+      {
+        question: "How much can I save by reducing blowdown?",
+        answer:
+          "Savings depend on steam output, pressure, feedwater temperature, operating hours, fuel cost, and water cost. Use this boiler blowdown savings calculator with your own numbers — reducing blowdown from 10% to 5% on a mid-size boiler often saves thousands of dollars per year.",
+      },
+      {
+        question: "Why does feedwater temperature matter?",
+        answer:
+          "The energy lost with blowdown is the heat needed to raise water from feedwater temperature to boiler saturation temperature. Colder feedwater means each pound of blowdown wastes more heat, so hot feedwater (for example from a deaerator) reduces the energy loss per pound of blowdown.",
+      },
+      {
+        question: "Can I use metric units?",
+        answer:
+          "Yes. Steam production accepts lb/hr and kg/hr, boiler pressure accepts psi and bar, and feedwater temperature accepts °F and °C. All values are converted internally before calculation.",
+      },
+      {
+        question: "How accurate are these estimates?",
+        answer:
+          "The tool uses standard approximations, including an approximate saturation temperature table and simplified water enthalpy. Estimates are intended for preliminary energy and cost analysis; actual boiler performance depends on operating conditions, water chemistry and system design.",
+      },
+    ],
+  },
 };
 
 export function getToolContent(slug: string): ToolContent | undefined {
