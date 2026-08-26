@@ -22,12 +22,17 @@ export async function generateMetadata({
     return { title: "Tool Not Found" };
   }
 
+  const description = content?.metaDescription || content?.subtitle || tool.description;
+
   return {
     title: tool.name,
-    description: content?.subtitle || tool.description,
+    description,
+    alternates: {
+      canonical: `/tools/${slug}`,
+    },
     openGraph: {
       title: `${tool.name} | UtilRivet`,
-      description: content?.subtitle || tool.description,
+      description,
       type: "website",
     },
   };

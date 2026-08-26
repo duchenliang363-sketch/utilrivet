@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { Tool } from "@/lib/tools";
 import { getToolContent } from "@/lib/tool-content";
 import ToolLayout from "@/components/ToolLayout";
@@ -50,6 +51,13 @@ export default function ToolPageClient({ tool, relatedTools }: ToolPageClientPro
         <section key={section.title}>
           <h2>{section.title}</h2>
           <p className="mt-3">{section.content}</p>
+          {section.cta && (
+            <p className="mt-3">
+              <Link href={`/tools/${section.cta.slug}`} className="font-medium text-primary hover:underline">
+                {section.cta.label} →
+              </Link>
+            </p>
+          )}
         </section>
       ))}
     </>

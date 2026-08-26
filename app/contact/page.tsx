@@ -4,6 +4,9 @@ import { siteConfig } from "@/lib/config";
 export const metadata: Metadata = {
   title: "Contact",
   description: "Contact UtilRivet for feedback, suggestions, or questions.",
+  alternates: {
+    canonical: "/contact",
+  },
 };
 
 export default function ContactPage() {

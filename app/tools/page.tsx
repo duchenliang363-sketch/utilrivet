@@ -4,6 +4,9 @@ import CategorizedTools from "@/components/CategorizedTools";
 export const metadata: Metadata = {
   title: "Tools",
   description: "Browse all free online tools on UtilRivet. Calculators, checkers, comparisons and workflow tools for business and manufacturing.",
+  alternates: {
+    canonical: "/tools",
+  },
 };
 
 export default function ToolsPage() {

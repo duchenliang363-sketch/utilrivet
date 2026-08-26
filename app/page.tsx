@@ -1,7 +1,14 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getActiveTools } from "@/lib/tools";
 import TrustStrip from "@/components/TrustStrip";
 import CategorizedTools from "@/components/CategorizedTools";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
+};
 
 export default function HomePage() {
   const activeTools = getActiveTools();

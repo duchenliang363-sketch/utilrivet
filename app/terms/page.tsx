@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Terms of Use",
   description: "UtilRivet terms of use. Please read before using our tools.",
+  alternates: {
+    canonical: "/terms",
+  },
 };
 
 export default function TermsPage() {

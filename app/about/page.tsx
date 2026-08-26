@@ -4,6 +4,9 @@ import { siteConfig } from "@/lib/config";
 export const metadata: Metadata = {
   title: "About",
   description: "Learn about UtilRivet and our mission to build simple web tools for professionals.",
+  alternates: {
+    canonical: "/about",
+  },
 };
 
 export default function AboutPage() {
