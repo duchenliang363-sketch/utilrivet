@@ -15,6 +15,7 @@ import BoilerBlowdownCostSavingsCalculator from "@/components/tools/BoilerBlowdo
 import CondensateReturnSavingsCalculator from "@/components/tools/CondensateReturnSavingsCalculator";
 import CompressedAirLeakSurveyReportBuilder from "@/components/tools/CompressedAirLeakSurveyReportBuilder";
 import SteamTrapSurveyReportBuilder from "@/components/tools/SteamTrapSurveyReportBuilder";
+import FixedFeeMatterProfitabilityCalculator from "@/components/tools/FixedFeeMatterProfitabilityCalculator";
 
 interface ToolPageClientProps {
   tool: Tool;
@@ -31,6 +32,7 @@ const toolComponentMap: Record<string, React.ComponentType> = {
   "condensate-return-savings-calculator": CondensateReturnSavingsCalculator,
   "compressed-air-leak-survey-report-builder": CompressedAirLeakSurveyReportBuilder,
   "steam-trap-survey-report-builder": SteamTrapSurveyReportBuilder,
+  "fixed-fee-matter-profitability-calculator": FixedFeeMatterProfitabilityCalculator,
 };
 
 export default function ToolPageClient({ tool, relatedTools }: ToolPageClientProps) {

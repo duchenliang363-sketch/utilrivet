@@ -84,6 +84,14 @@ export const tools: Tool[] = [
     toolType: "Workflow",
     status: "active",
   },
+  {
+    slug: "fixed-fee-matter-profitability-calculator",
+    name: "Fixed-Fee Matter Profitability Calculator",
+    description: "Review the true profit, margin and effective hourly rate of a fixed-fee matter, then estimate the fee for your target margin.",
+    category: "Business & Operations",
+    toolType: "Workflow",
+    status: "active",
+  },
 ];
 
 export const categories = [

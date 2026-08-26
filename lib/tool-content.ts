@@ -626,6 +626,82 @@ export const toolContents: Record<string, ToolContent> = {
       },
     ],
   },
+  "fixed-fee-matter-profitability-calculator": {
+    slug: "fixed-fee-matter-profitability-calculator",
+    subtitle:
+      "Calculate the true profit, margin, and effective hourly rate of a fixed-fee matter — then estimate what you should charge for a similar matter next time.",
+    metaDescription:
+      "Calculate profit, margin, effective hourly rate, and a target-margin fee for fixed-fee legal matters. Free browser-based tool with no signup.",
+    seoSections: [
+      {
+        title: "What is matter profitability?",
+        content:
+          "Matter profitability is the difference between the fixed fee a law firm collects and the real cost of delivering the matter: the hours worked by each team member valued at their internal cost per hour, plus direct costs the firm actually bears. Many fixed-fee practices know what they billed but not what a matter actually earned. A simple profitability review shows the true profit, the profit margin, and the effective hourly rate of the matter — the starting point for better fixed-fee pricing in solo practices and small law firms.",
+      },
+      {
+        title: "How to calculate profit on a fixed-fee matter",
+        content:
+          "Add up each team member\u2019s hours multiplied by their internal cost per hour to get the labor cost — use internal cost, not the rate billed to the client. Add any direct costs the firm bore on the matter, such as filing fees it absorbed, courier, contract attorney, travel, or research services. Total matter cost is labor cost plus other costs; matter profit is the fixed fee minus total cost, and the profit margin is profit divided by the fixed fee. Enter these figures in the calculator and it produces the full review, including a cost breakdown showing labor, other costs, and profit as a share of the fee.",
+      },
+      {
+        title: "What is effective hourly rate for a fixed-fee matter?",
+        content:
+          "The effective hourly rate of a fixed-fee matter is the fixed fee divided by the total hours the team actually worked — a revenue-based measure of what each hour of work earned. It is different from profit per hour, which divides matter profit by total hours. If a $3,500 matter took 17.5 total team hours, the effective hourly rate is $200/hour, even if part of that revenue was consumed by labor and other costs. Comparing the effective hourly rate with your internal cost per hour is a quick way to see whether a fixed fee is working for the firm.",
+      },
+      {
+        title: "How to price the next similar matter",
+        content:
+          "If the next similar matter will cost about the same to deliver, the fee that reaches a target profit margin is: total matter cost ÷ (1 − target margin). A matter that cost $2,200 to deliver needs a fee of about $3,143 to reach a 30% margin. This is a mathematical estimate based on this matter\u2019s actual costs — not market data — so treat it as a starting point for your quote rather than a recommended price.",
+      },
+      {
+        title: "Example fixed-fee matter profitability review",
+        content:
+          "Example: a firm handles a standard business formation for a fixed fee of $3,500. The partner works 3 hours at an internal cost of $160/hour, an associate 8 hours at $80, and a paralegal 4 hours at $40, giving a labor cost of $1,280 over 15 total hours. The firm also absorbs $300 of filing and admin costs. Total matter cost is $1,580, so matter profit is $1,920 — a 54.9% margin — and the effective hourly rate is $233.33/hour. At a 30% target margin, a similar matter with the same cost would need a calculated target-margin fee of about $2,257. Click Try Example in the workspace above to load this exact matter.",
+      },
+    ],
+    faq: [
+      {
+        question: "What is matter profitability?",
+        answer:
+          "It is the difference between the fixed fee collected for a matter and the actual cost of delivering it — team hours at internal cost per hour plus direct costs the firm bore. Reviewing it shows whether a fixed-fee matter was genuinely profitable and at what effective hourly rate.",
+      },
+      {
+        question: "How do you calculate profit on a fixed-fee legal matter?",
+        answer:
+          "Labor cost is each team member\u2019s hours times their internal cost per hour. Add direct costs the firm bore to get total matter cost, then subtract total cost from the fixed fee. Profit margin is profit divided by the fixed fee.",
+      },
+      {
+        question: "What is an effective hourly rate?",
+        answer:
+          "The fixed fee divided by total team hours — revenue per hour worked. It is not profit per hour, which divides matter profit by total hours. This tool shows both separately.",
+      },
+      {
+        question: "What costs should I include in a matter profitability review?",
+        answer:
+          "All labor hours worked on the matter at internal cost per hour, plus direct costs the firm actually bore: filing or admin fees absorbed by the firm, courier, contract attorney, travel, research services, and similar items. Include only costs the firm paid, not amounts billed through to the client.",
+      },
+      {
+        question: "How do I calculate a fee for a target profit margin?",
+        answer:
+          "Divide the expected total matter cost by (1 − target margin). For example, a matter that costs $1,580 to deliver needs a fee of $1,580 ÷ 0.7 ≈ $2,257 to reach a 30% margin. This assumes the next matter costs about the same as the one you reviewed.",
+      },
+      {
+        question: "Should filing fees be included?",
+        answer:
+          "Only if the firm actually bore them. If a filing fee was billed through to the client and reimbursed, it is not a cost of the matter. If the firm absorbed it inside the fixed fee, include it in Other Costs.",
+      },
+      {
+        question: "Does UtilRivet store client or matter data?",
+        answer:
+          "No. The tool runs entirely in your browser: nothing you enter is uploaded, stored on a server, or kept on your device after the session ends. The form does not ask for client names or case details, but you should still avoid entering confidential information.",
+      },
+      {
+        question: "Is this legal or financial advice?",
+        answer:
+          "No. This tool provides mathematical estimates for internal business analysis. It is not legal, accounting, tax, or financial advice.",
+      },
+    ],
+  },
 };
 
 export function getToolContent(slug: string): ToolContent | undefined {
