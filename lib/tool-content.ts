@@ -702,6 +702,92 @@ export const toolContents: Record<string, ToolContent> = {
       },
     ],
   },
+  "service-job-billing-closeout-checker": {
+    slug: "service-job-billing-closeout-checker",
+    subtitle:
+      "Compare what happened on a completed service job with what has been billed, find potentially missed charges, and check whether the job is ready to invoice.",
+    metaDescription:
+      "Check completed service jobs for potentially unbilled labor, materials, and additional charges before sending the invoice. Free browser-based tool.",
+    seoSections: [
+      {
+        title: "What is a service job billing closeout check?",
+        content:
+          "A billing closeout check is the final review between finishing a service job and sending the invoice. The technician completes the work, the office starts preparing billing, and somewhere in that hand-off, billable items can drop out: extra labor hours, parts used on site, trip charges, after-hours surcharges. The closeout check compares what actually happened on the job with what has been billed so far, and surfaces the difference as potential unbilled revenue — before the invoice goes out, when it is still easy to fix. For HVAC, plumbing, electrical, and equipment repair companies, this review is a simple way to protect revenue on every job.",
+      },
+      {
+        title: "What should be checked before invoicing a completed service job?",
+        content:
+          "There are two separate checks. First, the money: compare hours worked with hours billed for each technician, compare material quantities used with quantities billed, and confirm that applicable charges — service or diagnostic fees, trip charges, after-hours surcharges, disposal fees, equipment rental, and approved additional work — actually appear in the billing. Second, the documentation: technician notes, customer approval, a signature or completion acknowledgement, any required PO or authorization, parts records, and approvals for additional work. The amounts tell you whether anything was left off the invoice; the documentation tells you whether you can support the invoice if the customer asks questions later.",
+      },
+      {
+        title: "How unbilled labor and materials get missed",
+        content:
+          "Unbilled labor usually comes from hand-off gaps: a technician works five hours but the work order only lists four, an after-hours call-out happens but no surcharge is entered, or a second visit is never added to the invoice. Unbilled materials follow the same pattern — three valves were installed but only two were charged, or parts pulled from the truck were never written down. This is not about anyone doing something wrong; completed work simply takes several steps to become billing, and each step is a place where an item can be left out. Comparing used versus billed, line by line, is the fastest way to catch the difference while the job is fresh.",
+      },
+      {
+        title: "How to use the billing closeout checker",
+        content:
+          "Enter the job description and currency, then add one row per technician with hours worked, hours billed, and the billing rate. Add one row per material with quantity used, quantity billed, and the billing price per unit. Add the additional charges that apply to the job — expected amount versus amount billed — and mark each documentation item as Complete, Missing, or Not Required. The tool calculates the potential unbilled amount on every row, totals them as potential unbilled revenue, counts missing billing items and documentation issues, and shows a status: Ready to Invoice, or Needs Review. You can copy the summary or print the review as a PDF.",
+      },
+      {
+        title: "Example service job billing closeout",
+        content:
+          "Example: a commercial AC repair. The service technician worked 5 hours but only 4 were billed, at $150/hour — $150 potentially unbilled. Three replacement valves were used but only two were billed, at $85 each — $85 potentially unbilled. An after-hours surcharge of $85 applied but was not billed — $85 potentially unbilled — while the $95 diagnostic fee was billed in full. Total potential unbilled revenue: $320 across 3 missing billing items. Documentation is complete, but because unbilled amounts exist, the status is Needs Review. Click Try Example in the workspace above to load this exact job.",
+      },
+      {
+        title: "Billing completeness vs invoice generation",
+        content:
+          "This tool is not an invoice generator and does not replace your billing or field service software. It does not create, send, or store invoices, and it does not connect to accounting systems. It solves one narrow problem — before-invoice billing review: checking whether the billable work and materials from a completed job all made it into billing. If your jobs are already invoiced through QuickBooks, ServiceTitan, Jobber, or similar tools, this checker sits in front of that step as a two-minute completeness check.",
+      },
+    ],
+    faq: [
+      {
+        question: "What is a billing closeout check?",
+        answer:
+          "It is a review done after a service job is completed and before the invoice is sent. You compare what actually happened on the job — hours worked, materials used, applicable charges — with what has been billed, to find items that may have been left out.",
+      },
+      {
+        question: "What should I check before invoicing a service job?",
+        answer:
+          "Check labor hours worked versus billed, material quantities used versus billed, applicable charges such as trip fees, diagnostic fees, and after-hours surcharges, and supporting documentation such as technician notes, customer approval, and any required PO.",
+      },
+      {
+        question: "How do I find unbilled labor?",
+        answer:
+          "For each technician on the job, compare hours worked with hours billed at the billing rate. If more hours were worked than billed, the difference times the rate is the potential unbilled amount for that row.",
+      },
+      {
+        question: "How do I find materials that were used but not billed?",
+        answer:
+          "Compare the quantity of each part used on the job with the quantity billed, at the billing price per unit. Any shortfall is potential unbilled material revenue.",
+      },
+      {
+        question: "Should trip charges and diagnostic fees be checked?",
+        answer:
+          "Yes, if they apply to the job. Service fees, trip charges, after-hours surcharges, disposal fees, and equipment rental are common items that get left off invoices. Enter only the charges that actually apply to your job — this tool does not assume any standard fee.",
+      },
+      {
+        question: "What if billed hours are higher than worked hours?",
+        answer:
+          "The tool shows the potential unbilled amount as $0 for that row and adds a neutral note that billed hours exceed recorded worked hours, so you can review it. It never shows a negative amount or judges the reason.",
+      },
+      {
+        question: "Does this tool create invoices?",
+        answer:
+          "No. It only checks whether billable items from a completed job made it into billing. Creating and sending invoices stays in your existing billing or accounting software.",
+      },
+      {
+        question: "Does UtilRivet store my job data?",
+        answer:
+          "No. The tool runs entirely in your browser: nothing you enter is uploaded, stored on a server, or kept after the session ends. The form does not ask for customer names or addresses, but you should still avoid entering confidential information.",
+      },
+      {
+        question: "Is this accounting or legal advice?",
+        answer:
+          "No. This tool provides a billing completeness review based on information you enter. It does not verify contracts, pricing agreements, tax treatment, accounting records, or legal billing requirements.",
+      },
+    ],
+  },
 };
 
 export function getToolContent(slug: string): ToolContent | undefined {
