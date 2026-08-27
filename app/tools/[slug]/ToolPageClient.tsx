@@ -16,6 +16,7 @@ import CondensateReturnSavingsCalculator from "@/components/tools/CondensateRetu
 import CompressedAirLeakSurveyReportBuilder from "@/components/tools/CompressedAirLeakSurveyReportBuilder";
 import SteamTrapSurveyReportBuilder from "@/components/tools/SteamTrapSurveyReportBuilder";
 import FixedFeeMatterProfitabilityCalculator from "@/components/tools/FixedFeeMatterProfitabilityCalculator";
+import IoltaThreeWayReconciliation from "@/components/tools/IoltaThreeWayReconciliation";
 
 interface ToolPageClientProps {
   tool: Tool;
@@ -33,6 +34,7 @@ const toolComponentMap: Record<string, React.ComponentType> = {
   "compressed-air-leak-survey-report-builder": CompressedAirLeakSurveyReportBuilder,
   "steam-trap-survey-report-builder": SteamTrapSurveyReportBuilder,
   "fixed-fee-matter-profitability-calculator": FixedFeeMatterProfitabilityCalculator,
+  "iolta-three-way-reconciliation": IoltaThreeWayReconciliation,
 };
 
 export default function ToolPageClient({ tool, relatedTools }: ToolPageClientProps) {

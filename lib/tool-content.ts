@@ -702,6 +702,62 @@ export const toolContents: Record<string, ToolContent> = {
       },
     ],
   },
+  "iolta-three-way-reconciliation": {
+    slug: "iolta-three-way-reconciliation",
+    subtitle:
+      "Reconcile an IOLTA trust account three ways — bank statement, trust register and client ledgers — balanced to the cent, then print or save a signed monthly reconciliation record. No account, runs entirely in your browser.",
+    metaDescription:
+      "Free IOLTA trust account three-way reconciliation tool. Compare bank statement, trust register and client ledger balances to the cent, then print a signed monthly reconciliation record. Runs in your browser, nothing uploaded.",
+    seoSections: [
+      {
+        title: "What is a three-way trust account reconciliation?",
+        content:
+          "A three-way reconciliation proves that three separate numbers agree to the cent: the adjusted bank balance (the bank statement ending balance minus outstanding checks plus outstanding deposits), the trust register balance, and the total of all individual client ledger balances. Law firms that hold client funds in IOLTA trust accounts typically reconcile monthly, and a three-way reconciliation is the core arithmetic check: if all three figures agree, the bank account, the checkbook register, and the per-client books tell the same story.",
+      },
+      {
+        title: "How to use this reconciliation tool",
+        content:
+          "Enter the ending balance from your bank statement, then list any checks and deposits that have not yet cleared — these adjust the bank figure. Enter the running trust register balance, then enter each client or matter ledger balance, either one by one or by importing a CSV with Client, Balance on each line. Run the reconciliation: the tool shows whether all three figures agree to the cent and, if not, exactly how far apart they are. You can then add your firm name, period and preparer and print or save the record as a PDF with signature lines.",
+      },
+      {
+        title: "Who is this tool for?",
+        content:
+          "Solo practitioners and small firms doing their own monthly trust account bookkeeping, bookkeepers preparing reconciliations for attorney review, and anyone who wants a quick arithmetic check without opening an account or moving their ledger into new software. Everything is typed into your browser: nothing is stored, uploaded, or saved on any server, and the CSV import is read locally by your browser only.",
+      },
+      {
+        title: "Is this tool legal advice or a compliance certification?",
+        content:
+          "No. This tool performs arithmetic only: it adds and compares the three figures you enter and produces a printable record of that comparison. It does not certify compliance with any state bar rule, ABA Model Rule 1.15, or any other requirement, and it does not track state-specific rules. The attorney or bookkeeper using the tool remains responsible for verifying the reconciliation and for knowing the rules that apply in their jurisdiction.",
+      },
+    ],
+    faq: [
+      {
+        question: "What three figures does a three-way reconciliation compare?",
+        answer:
+          "The adjusted bank balance (statement ending balance minus outstanding checks plus outstanding deposits), the trust register balance, and the total of all client ledger balances. A balanced trust account is one where all three agree to the cent.",
+      },
+      {
+        question: "What does a negative client ledger balance mean?",
+        answer:
+          "A negative balance on one client’s ledger can indicate that one client’s funds were used for another client’s matter. The tool accepts negative ledger amounts but always flags them with a warning — even when the three totals still balance — because the cause should be investigated before the record is signed.",
+      },
+      {
+        question: "What CSV format does the import accept?",
+        answer:
+          "A two-column format with Client in the first column and Balance in the second, with an optional Client, Balance header row. Quoted names like \"Smith, John\" are supported, and balances may use standard negatives such as -250.00 or the accounting form (250.00). Invalid rows are skipped and counted. The file is read locally in your browser and is never uploaded.",
+      },
+      {
+        question: "Do I need to create an account or import my ledger software?",
+        answer:
+          "No. The tool runs entirely in your browser with no account, no signup, and no connection to Clio, PC Law, QuickBooks, or any other system. You type or import the figures, the math runs locally, and nothing you enter is stored or uploaded.",
+      },
+      {
+        question: "Does this tool certify that my trust account is compliant?",
+        answer:
+          "No. It provides arithmetic and reconciliation assistance only — not legal advice, and not a compliance certification for any state bar rule or ABA requirement. Verification and compliance remain your responsibility. Rules differ by jurisdiction and change over time; check with your state bar.",
+      },
+    ],
+  },
 };
 
 export function getToolContent(slug: string): ToolContent | undefined {

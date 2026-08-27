@@ -92,11 +92,20 @@ export const tools: Tool[] = [
     toolType: "Workflow",
     status: "active",
   },
+  {
+    slug: "iolta-three-way-reconciliation",
+    name: "IOLTA Trust Account 3-Way Reconciliation",
+    description: "Reconcile an IOLTA trust account three ways — bank statement, trust register and client ledgers — and print a signed monthly reconciliation record. Arithmetic only, runs in your browser.",
+    category: "Legal & Accounting",
+    toolType: "Workflow",
+    status: "active",
+  },
 ];
 
 export const categories = [
   "Business & Operations",
   "Manufacturing & Energy",
+  "Legal & Accounting",
   "General",
 ] as const;
 
