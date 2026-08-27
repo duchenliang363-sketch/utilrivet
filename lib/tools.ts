@@ -94,7 +94,7 @@ export const tools: Tool[] = [
   },
   {
     slug: "iolta-three-way-reconciliation",
-    name: "IOLTA Trust Account 3-Way Reconciliation",
+    name: "IOLTA Three-Way Trust Reconciliation Tool",
     description: "Reconcile an IOLTA trust account three ways — bank statement, trust register and client ledgers — and print a signed monthly reconciliation record. Arithmetic only, runs in your browser.",
     category: "Legal & Accounting",
     toolType: "Workflow",

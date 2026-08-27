@@ -707,7 +707,7 @@ export const toolContents: Record<string, ToolContent> = {
     subtitle:
       "Reconcile an IOLTA trust account three ways — bank statement, trust register and client ledgers — balanced to the cent, then print or save a signed monthly reconciliation record. No account, runs entirely in your browser.",
     metaDescription:
-      "Free IOLTA trust account three-way reconciliation tool. Compare bank statement, trust register and client ledger balances to the cent, then print a signed monthly reconciliation record. Runs in your browser, nothing uploaded.",
+      "Free IOLTA three-way trust reconciliation tool for law firms. Compare the adjusted bank balance, trust register and client ledgers, flag discrepancies and negative balances, then print a monthly reconciliation record. No signup or upload.",
     seoSections: [
       {
         title: "What is a three-way trust account reconciliation?",
