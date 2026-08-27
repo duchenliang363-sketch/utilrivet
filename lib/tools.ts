@@ -92,14 +92,6 @@ export const tools: Tool[] = [
     toolType: "Workflow",
     status: "active",
   },
-  {
-    slug: "service-job-billing-closeout-checker",
-    name: "Service Job Billing Closeout Checker",
-    description: "Compare what happened on a completed service job with what has been billed, and find potentially missed charges before sending the invoice.",
-    category: "Business & Operations",
-    toolType: "Checker",
-    status: "active",
-  },
 ];
 
 export const categories = [
