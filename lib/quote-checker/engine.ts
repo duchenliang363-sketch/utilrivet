@@ -217,8 +217,21 @@ function extractValue(lines: string[], idx: number): string {
   }
 
   // Bare mention without a colon, e.g. "Prices are FOB Shanghai"
+  // Only extract if the line is short enough to be a value, not a table row
   if (!value && sepIdx < 0) {
-    value = line.length <= 100 ? line : line.slice(0, 100) + "…";
+    // Skip lines that look like table headers or data rows (contain multiple numbers + words)
+    const wordCount = line.split(/\s+/).length;
+    const numberCount = (line.match(/\d+/g) || []).length;
+    // If line has many words AND numbers, it's likely a table row — skip
+    if (wordCount > 6 && numberCount >= 2) {
+      // Try next line instead
+      const next = (lines[idx + 1] || "").trim();
+      if (next && next.length <= 80 && !/[:：]/.test(next)) {
+        value = next;
+      }
+    } else if (line.length <= 80) {
+      value = line;
+    }
   }
   return value;
 }
@@ -250,7 +263,16 @@ function extractSupplierName(lines: string[]): string | null {
     // Primary: explicit Supplier/Vendor label
     if (/\b(supplier|vendor|company\s*name|sold\s*by)\s*[:：]/i.test(line)) {
       const sep = Math.max(line.indexOf(":"), line.indexOf("："));
-      const val = line.slice(sep + 1).trim();
+      let val = line.slice(sep + 1).trim();
+      // Limit to 80 chars to avoid grabbing multiple fields
+      if (val.length > 80) {
+        // Try to find a natural break (comma, period, or next field label)
+        const cut = val.slice(0, 80);
+        const lastComma = cut.lastIndexOf(",");
+        const lastPeriod = cut.lastIndexOf(".");
+        const breakPoint = Math.max(lastComma, lastPeriod);
+        val = breakPoint > 10 ? cut.slice(0, breakPoint + 1).trim() : cut.trim();
+      }
       if (val) return val;
     }
   }

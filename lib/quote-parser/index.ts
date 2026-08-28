@@ -81,11 +81,49 @@ async function parseXLSX(file: File): Promise<ParseResult> {
     defval: "",
   });
 
-  // Convert rows to text: each row becomes a line, cells joined by space
-  const text = rows
-    .map((row) => row.map((cell) => String(cell ?? "")).join(" ").trim())
-    .filter((line) => line.length > 0)
-    .join("\n");
+  // Detect header rows and data rows separately.
+  // Header rows contain field labels (Qty, Price, Amount, Unit, etc.) — skip them.
+  // Data rows contain actual values — output each non-empty cell on its own line.
+  const HEADER_KEYWORDS = [
+    "drawing no", "item no", "description", "specification", "model",
+    "unit", "qty", "quantity", "unit price", "total amount", "remarks",
+    "no.", "#", "序号", "图号", "名称", "规格", "单位", "数量", "单价", "金额", "备注"
+  ];
+
+  function isHeaderRow(row: string[]): boolean {
+    const lower = row.map((c) => String(c ?? "").toLowerCase().trim());
+    const matchCount = lower.filter((cell) =>
+      HEADER_KEYWORDS.some((kw) => cell.includes(kw))
+    ).length;
+    return matchCount >= 2; // At least 2 header keywords = likely a header row
+  }
+
+  // Build text: label-style lines first (for "Label: Value" format), then table cells
+  const textLines: string[] = [];
+  for (const row of rows) {
+    if (isHeaderRow(row)) continue; // Skip table headers
+    const nonEmpty = row.filter((cell) => String(cell ?? "").trim().length > 0);
+    if (nonEmpty.length === 0) continue;
+
+    // If row has exactly 2 cells and first looks like a label, output as "Label: Value"
+    if (nonEmpty.length === 2) {
+      const label = String(nonEmpty[0]).trim();
+      const value = String(nonEmpty[1]).trim();
+      // Check if first cell looks like a label (contains letters, not just numbers)
+      if (/[a-zA-Z]/.test(label) && !/^\d+$/.test(label)) {
+        textLines.push(`${label}: ${value}`);
+        continue;
+      }
+    }
+
+    // Otherwise output each cell on its own line
+    for (const cell of nonEmpty) {
+      const trimmed = String(cell ?? "").trim();
+      if (trimmed) textLines.push(trimmed);
+    }
+  }
+
+  const text = textLines.join("\n");
 
   return {
     text,
