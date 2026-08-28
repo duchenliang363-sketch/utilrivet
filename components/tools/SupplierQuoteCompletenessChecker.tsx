@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Link from "next/link";
 import { checkQuote, buildQuestions, type QuoteCheckResult, type FieldStatus } from "@/lib/quote-checker/engine";
 import { demoQuote } from "@/lib/quote-checker/demo-data";
 import EmptyState from "@/components/EmptyState";
@@ -143,6 +144,24 @@ export default function SupplierQuoteCompletenessChecker() {
             </div>
           </div>
 
+          {/* Critical Missing Items */}
+          {result.criticalMissing.length > 0 && (
+            <div>
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-foreground">Critical Missing Items</h3>
+                <p className="text-sm text-muted mt-1">These essential fields are missing or unclear and directly affect whether this quote can be compared with others.</p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {result.criticalMissing.map((item) => (
+                  <div key={item.id} className="rounded-xl border border-red-200 bg-red-50/50 p-4 flex items-center justify-between gap-3">
+                    <span className="text-sm font-medium text-foreground">{item.label}</span>
+                    <StatusBadge status={item.status} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Items to Review */}
           {itemsToReview.length > 0 && (
             <div>
@@ -167,7 +186,7 @@ export default function SupplierQuoteCompletenessChecker() {
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-lg font-semibold text-foreground">Questions to Ask Supplier</h3>
-                  <p className="text-sm text-muted mt-1">Generated from the missing and unclear items above.</p>
+                  <p className="text-sm text-muted mt-1">Generated from the missing and unclear items above, sorted by priority.</p>
                 </div>
                 <button
                   onClick={handleCopy}
@@ -207,9 +226,20 @@ export default function SupplierQuoteCompletenessChecker() {
             </div>
           </div>
 
+          {/* Compare CTA */}
+          <div className="flex justify-center">
+            <Link
+              href="/tools/production-line-quote-comparator"
+              className="inline-flex items-center gap-2 btn btn-primary"
+            >
+              Compare Supplier Quotes
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+
           {/* Disclaimer */}
           <div className="text-xs text-muted border-t border-border pt-4">
-            This tool checks for common quotation fields using rule-based text matching. It does not verify whether the commercial terms are correct, favorable, or legally sufficient. Once a quotation is complete, compare it with other supplier quotes using the Production Line Quote Comparator.
+            This tool checks for common quotation fields using rule-based text matching. It does not verify whether the commercial terms are correct, favorable, or legally sufficient.
           </div>
         </div>
       )}
