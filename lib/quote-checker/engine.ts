@@ -93,7 +93,7 @@ const FIELD_DEFS: FieldDef[] = [
     importance: "critical",
     global: (t) => {
       const m = t.match(/\b(USD|EUR|GBP|CNY|RMB|JPY|AUD|CAD|CHF|INR)\b/);
-      return m ? m[1] : null;
+      return m ? normalizeCurrency(m[1]) : null;
     },
     test: (l) => /\bcurrency\b/i.test(l),
     question: "Please confirm the currency for all quoted prices.",
@@ -146,7 +146,10 @@ const FIELD_DEFS: FieldDef[] = [
     id: "taxes",
     label: "Taxes / Duties",
     importance: "important",
-    test: (l) => /\b(tax(es)?|vat|dut(y|ies)|gst|customs\s*(duty|duties))\b/i.test(l),
+    test: (l) => {
+      if (/\b(total|grand\s*total|amount|price)\b/i.test(l)) return false;
+      return /\b(tax(es)?|vat|dut(y|ies)|gst|customs\s*(duty|duties))\b/i.test(l);
+    },
     question: "Please clarify whether taxes and import duties are included in the quoted price.",
   },
   {
@@ -202,6 +205,9 @@ const IMPORTANCE_WEIGHT: Record<FieldImportance, number> = {
 // Vague phrasing means the field is mentioned but has no concrete value.
 const VAGUE_PATTERN =
   /\b(tbd|tba|to be (confirmed|discussed|determined|advised|decided|agreed|negotiated)|on request|upon request|negotiable|as agreed|as per (agreement|contract)|depends|pending|not specified|unknown|n\/a)\b/i;
+
+// Placeholder patterns: underscores, dashes, empty-looking values
+const PLACEHOLDER_PATTERN = /^[_\-\s]{2,}$/;
 
 function extractValue(lines: string[], idx: number): string {
   const line = lines[idx].trim();
@@ -262,7 +268,12 @@ function findFieldLine(lines: string[], test: (line: string) => boolean): number
 
 function classify(value: string): FieldStatus {
   const v = value.trim();
-  if (!v || v === "-" || v === "—" || VAGUE_PATTERN.test(v)) return "UNCLEAR";
+  if (!v || v === "-" || v === "—") return "UNCLEAR";
+  // Placeholder patterns: "___", "---", "____ days", etc.
+  if (PLACEHOLDER_PATTERN.test(v)) return "UNCLEAR";
+  // Check for placeholder within longer text: "___ days after..." or "____ deposit..."
+  if (/_{2,}/.test(v) || /^-{2,}\s/.test(v)) return "UNCLEAR";
+  if (VAGUE_PATTERN.test(v)) return "UNCLEAR";
   return "PRESENT";
 }
 
@@ -300,6 +311,13 @@ function extractSupplierName(lines: string[]): string | null {
 }
 
 // ─── Main Check ───────────────────────────────────────────
+
+/** Normalize currency codes to a canonical form */
+function normalizeCurrency(code: string): string {
+  const upper = code.toUpperCase().trim();
+  if (upper === "RMB") return "CNY";
+  return upper;
+}
 
 export function checkQuote(text: string): QuoteCheckResult {
   const lines = (text || "").split(/\r?\n/);

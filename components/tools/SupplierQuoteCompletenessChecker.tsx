@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { checkQuote, buildQuestions, type QuoteCheckResult, type FieldStatus } from "@/lib/quote-checker/engine";
+import { compareQuotes, type ComparisonSummary } from "@/lib/quote-checker/comparison";
 import { demoQuote } from "@/lib/quote-checker/demo-data";
 import { parseQuoteFile, type ParseResult } from "@/lib/quote-parser";
 import EmptyState from "@/components/EmptyState";
@@ -31,92 +32,113 @@ function StatusBadge({ status }: { status: FieldStatus }) {
   );
 }
 
-// ─── Comparison Table ──────────────────────────────────────
 
-function ComparisonTable({ quotes }: { quotes: QuoteEntry[] }) {
-  const fields = quotes[0]?.result?.checks || [];
+// ── Comparison Summary Component ─────────────────────────
 
+function ComparisonSummaryView({ summary, quotes }: { summary: ComparisonSummary; quotes: QuoteEntry[] }) {
   return (
-    <div>
-      <h3 className="text-lg font-semibold text-foreground mb-1">Side-by-Side Comparison</h3>
-      <p className="text-sm text-muted mb-4">Field-level comparison across all supplier quotations.</p>
-      <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-surface border-b border-border">
-              <th className="text-left py-3 px-4 font-semibold text-foreground min-w-[160px]">Field</th>
-              {quotes.map((q) => (
-                <th key={q.id} className="text-center py-3 px-4 font-semibold text-foreground min-w-[120px]">
-                  {q.name}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {fields.map((field) => (
-              <tr key={field.id} className="border-b border-border last:border-b-0 hover:bg-gray-50/70 transition-colors">
-                <td className="py-2.5 px-4 text-foreground">
-                  <span className="font-medium">{field.label}</span>
-                  <span className="ml-2 text-[10px] text-muted uppercase">{field.importance}</span>
-                </td>
-                {quotes.map((q) => {
-                  const check = q.result?.checks.find((c) => c.id === field.id);
-                  return (
-                    <td key={q.id} className="py-2.5 px-4 text-center">
-                      {check ? (
-                        <div className="flex flex-col items-center gap-1">
-                          <StatusBadge status={check.status} />
-                          {check.status === "PRESENT" && check.value && (
-                            <span className="text-xs text-muted tabular-nums">{check.value}</span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-gray-400">—</span>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="space-y-6">
+      {/* One-line conclusion */}
+      <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+        <h3 className="text-sm font-semibold text-primary mb-2">Comparison Conclusion</h3>
+        <p className="text-base text-foreground leading-relaxed">{summary.conclusion}</p>
       </div>
 
-      {/* Score Summary */}
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {quotes.map((q) => {
-          if (!q.result) return null;
-          const colors: Record<string, string> = {
-            Complete: "text-green-700",
-            "Mostly Complete": "text-blue-700",
-            Partial: "text-amber-700",
-            Incomplete: "text-red-700",
-          };
-          return (
-            <div key={q.id} className="rounded-xl border border-border p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-semibold text-foreground">{q.name}</h4>
-                <span className={`text-lg font-bold ${colors[q.result.level] || "text-foreground"}`}>
-                  {q.result.score}%
-                </span>
-              </div>
-              <div className="h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
-                <div className="h-full rounded-full bg-primary" style={{ width: `${q.result.score}%` }} />
-              </div>
-              <div className="mt-2 flex gap-3 text-xs text-muted">
-                <span><span className="font-medium text-green-700">{q.result.present}</span> Present</span>
-                <span><span className="font-medium text-red-700">{q.result.missing}</span> Missing</span>
-                <span><span className="font-medium text-amber-700">{q.result.unclear}</span> Unclear</span>
-              </div>
+      {/* Comparability Assessment */}
+      {!summary.assessment.comparable && summary.assessment.reasons.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <h3 className="text-sm font-semibold text-amber-800 mb-2">⚠ Not Directly Comparable</h3>
+          <ul className="list-disc list-inside text-sm text-amber-900 space-y-1">
+            {summary.assessment.reasons.map((reason, i) => (
+              <li key={i}>{reason}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Price Difference Highlight */}
+      {summary.priceDifference && (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-border p-4">
+            <p className="text-xs text-muted mb-1">Price Difference</p>
+            <p className="text-2xl font-bold text-foreground">{summary.priceDifference.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+            <p className="text-xs text-muted mt-1">{summary.priceDifference.percentage.toFixed(1)}% difference</p>
+          </div>
+          <div className="rounded-xl border border-border p-4">
+            <p className="text-xs text-muted mb-1">Lower Price</p>
+            <p className="text-lg font-semibold text-green-700">{summary.priceDifference.lower}</p>
+          </div>
+          <div className="rounded-xl border border-border p-4">
+            <p className="text-xs text-muted mb-1">Raw Prices</p>
+            <div className="space-y-1">
+              {quotes.filter((q) => q.result).map((q, i) => {
+                const price = summary.priceDifference!.rawValues[i];
+                return (
+                  <p key={q.id} className="text-sm">
+                    <span className="font-medium">{q.name}:</span>{" "}
+                    <span className="tabular-nums">{price?.toLocaleString(undefined, { maximumFractionDigits: 2 }) || "N/A"}</span>
+                  </p>
+                );
+              })}
             </div>
-          );
-        })}
+          </div>
+        </div>
+      )}
+
+      {/* Key Differences Table */}
+      <div>
+        <h3 className="text-lg font-semibold text-foreground mb-3">Key Differences</h3>
+        <div className="overflow-x-auto rounded-xl border border-border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-surface border-b border-border">
+                <th className="text-left py-3 px-4 font-semibold text-foreground min-w-[140px]">Field</th>
+                {quotes.filter((q) => q.result).map((q) => (
+                  <th key={q.id} className="text-center py-3 px-4 font-semibold text-foreground min-w-[120px]">
+                    {q.name}
+                  </th>
+                ))}
+                <th className="text-left py-3 px-4 font-semibold text-foreground min-w-[160px]">Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              {summary.rows.map((row) => (
+                <tr key={row.fieldId} className={`border-b border-border last:border-b-0 ${row.warning ? "bg-amber-50/50" : ""}`}>
+                  <td className="py-2.5 px-4">
+                    <span className="font-medium text-foreground">{row.label}</span>
+                  </td>
+                  {row.values.map((val, i) => (
+                    <td key={i} className="py-2.5 px-4 text-center">
+                      {val ? (
+                        <div className="flex flex-col items-center gap-1">
+                          <StatusBadge status={row.statuses[i] as FieldStatus} />
+                          <span className="text-xs text-muted tabular-nums max-w-[160px] truncate" title={val}>{val}</span>
+                        </div>
+                      ) : (
+                        <StatusBadge status="MISSING" />
+                      )}
+                    </td>
+                  ))}
+                  <td className="py-2.5 px-4">
+                    {row.difference ? (
+                      <span className={`text-xs ${row.warning ? "text-amber-700 font-medium" : "text-muted"}`}>
+                        {row.warning && "⚠ "}{row.difference}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">—</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
 }
 
-// ─── Single Quote Card ─────────────────────────────────────
+// ── Single Quote Card ─────────────────────────────────────
 
 function QuoteCard({
   quote,
@@ -199,7 +221,7 @@ export default function SupplierQuoteCompletenessChecker() {
   const [dragging, setDragging] = useState(false);
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const compareRef = useRef<HTMLDivElement>(null);
+  const summaryRef = useRef<HTMLDivElement>(null);
 
   const addQuote = (name: string, text: string, parseInfo?: ParseResult) => {
     const id = `quote-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -264,7 +286,7 @@ export default function SupplierQuoteCompletenessChecker() {
     );
     if (quotes.length >= 2) {
       setTimeout(() => {
-        compareRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        summaryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
     }
   };
@@ -311,6 +333,10 @@ export default function SupplierQuoteCompletenessChecker() {
   };
 
   const hasResults = quotes.some((q) => q.result);
+  const checkedQuotes = quotes.filter((q) => q.result);
+  const comparisonSummary = checkedQuotes.length >= 2
+    ? compareQuotes(checkedQuotes.map((q) => ({ name: q.name, result: q.result! })))
+    : null;
   const allQuestions = hasResults
     ? quotes.flatMap((q) => (q.result ? buildQuestions(q.result).map((qq) => ({ supplier: q.name, question: qq })) : []))
     : [];
@@ -393,96 +419,101 @@ export default function SupplierQuoteCompletenessChecker() {
         />
       )}
 
-      {/* Comparison Table (2+ quotes with results) */}
-      {quotes.length >= 2 && hasResults && (
-        <div ref={compareRef} className="space-y-6">
-          <ComparisonTable quotes={quotes.filter((q) => q.result)} />
+      {/* Comparison Summary (FIRST SCREEN when 2+ quotes) */}
+      {comparisonSummary && (
+        <div ref={summaryRef} className="space-y-6">
+          <ComparisonSummaryView summary={comparisonSummary} quotes={checkedQuotes} />
         </div>
       )}
 
-      {/* Per-quote Details */}
+      {/* Per-quote Details (folded below) */}
       {hasResults && (
-        <div className="space-y-6">
-          {quotes.filter((q) => q.result).map((q) => {
-            const r = q.result!;
-            const itemsToReview = r.checks.filter((c) => c.status !== "PRESENT");
-            return (
-              <div key={q.id} className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">{q.name} — Details</h3>
+        <details className="group">
+          <summary className="cursor-pointer text-lg font-semibold text-foreground mb-4 hover:text-primary transition-colors">
+            Completeness Details (click to expand)
+          </summary>
+          <div className="mt-4 space-y-6">
+            {checkedQuotes.map((q) => {
+              const r = q.result!;
+              const itemsToReview = r.checks.filter((c) => c.status !== "PRESENT");
+              return (
+                <div key={q.id} className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground">{q.name} — Details</h3>
 
-                <div className="result-card">
-                  <h4 className="result-label">Completeness</h4>
-                  <div className="flex items-baseline gap-3">
-                    <span className="result-number">{r.score}%</span>
-                    <span className="text-sm font-medium text-primary">{r.level}</span>
-                  </div>
-                  <div className="mt-3 h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${r.score}%` }} />
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
-                    <span className="text-muted"><span className="font-medium text-green-700">{r.present}</span> Present</span>
-                    <span className="text-muted"><span className="font-medium text-red-700">{r.missing}</span> Missing</span>
-                    <span className="text-muted"><span className="font-medium text-amber-700">{r.unclear}</span> Unclear</span>
-                  </div>
-                </div>
-
-                {r.criticalMissing.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground mb-2">Critical Missing</h4>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {r.criticalMissing.map((item) => (
-                        <div key={item.id} className="rounded-lg border border-red-200 bg-red-50/50 p-3 flex items-center justify-between gap-3">
-                          <span className="text-sm font-medium text-foreground">{item.label}</span>
-                          <StatusBadge status={item.status} />
-                        </div>
-                      ))}
+                  <div className="result-card">
+                    <h4 className="result-label">Completeness</h4>
+                    <div className="flex items-baseline gap-3">
+                      <span className="result-number">{r.score}%</span>
+                      <span className="text-sm font-medium text-primary">{r.level}</span>
+                    </div>
+                    <div className="mt-3 h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
+                      <div className="h-full rounded-full bg-primary" style={{ width: `${r.score}%` }} />
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+                      <span className="text-muted"><span className="font-medium text-green-700">{r.present}</span> Present</span>
+                      <span className="text-muted"><span className="font-medium text-red-700">{r.missing}</span> Missing</span>
+                      <span className="text-muted"><span className="font-medium text-amber-700">{r.unclear}</span> Unclear</span>
                     </div>
                   </div>
-                )}
 
-                {itemsToReview.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground mb-2">Items to Review</h4>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {itemsToReview.map((item) => (
-                        <div key={item.id} className="rounded-lg border border-border bg-background p-3 flex items-center justify-between gap-3">
-                          <span className="text-sm font-medium text-foreground">{item.label}</span>
-                          <StatusBadge status={item.status} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {/* Questions */}
-          {allQuestions.length > 0 && (
-            <div>
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground">Questions to Ask Suppliers</h3>
-                  <p className="text-sm text-muted mt-1">Generated from missing and unclear items, sorted by priority.</p>
-                </div>
-                <button onClick={handleCopyQuestions} className="btn btn-secondary btn-sm">
-                  {copied ? "Copied ✓" : "Copy Questions"}
-                </button>
-              </div>
-              <ol className="rounded-xl border border-border bg-background divide-y divide-border">
-                {allQuestions.map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 px-4 py-3">
-                    <span className="text-xs font-semibold text-primary mt-0.5 shrink-0">{i + 1}.</span>
+                  {r.criticalMissing.length > 0 && (
                     <div>
-                      <span className="text-xs text-muted">{item.supplier}: </span>
-                      <span className="text-sm text-foreground">{item.question}</span>
+                      <h4 className="text-sm font-semibold text-foreground mb-2">Critical Missing</h4>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {r.criticalMissing.map((item) => (
+                          <div key={item.id} className="rounded-lg border border-red-200 bg-red-50/50 p-3 flex items-center justify-between gap-3">
+                            <span className="text-sm font-medium text-foreground">{item.label}</span>
+                            <StatusBadge status={item.status} />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
-        </div>
+                  )}
+
+                  {itemsToReview.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground mb-2">Items to Review</h4>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {itemsToReview.map((item) => (
+                          <div key={item.id} className="rounded-lg border border-border bg-background p-3 flex items-center justify-between gap-3">
+                            <span className="text-sm font-medium text-foreground">{item.label}</span>
+                            <StatusBadge status={item.status} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Questions */}
+            {allQuestions.length > 0 && (
+              <div>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground">Questions to Ask Suppliers</h3>
+                    <p className="text-sm text-muted mt-1">Generated from missing and unclear items, sorted by priority.</p>
+                  </div>
+                  <button onClick={handleCopyQuestions} className="btn btn-secondary btn-sm">
+                    {copied ? "Copied ✓" : "Copy Questions"}
+                  </button>
+                </div>
+                <ol className="rounded-xl border border-border bg-background divide-y divide-border">
+                  {allQuestions.map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 px-4 py-3">
+                      <span className="text-xs font-semibold text-primary mt-0.5 shrink-0">{i + 1}.</span>
+                      <div>
+                        <span className="text-xs text-muted">{item.supplier}: </span>
+                        <span className="text-sm text-foreground">{item.question}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+          </div>
+        </details>
       )}
 
       {/* Disclaimer */}
