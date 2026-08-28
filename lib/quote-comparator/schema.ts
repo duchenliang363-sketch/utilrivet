@@ -133,31 +133,41 @@ export function compareSuppliers(suppliers: Supplier[]): ComparisonResult {
 
   for (const category of comparisonCategories) {
     for (const item of category.items) {
-      const entries = suppliers.map((s) => ({
-        supplier: s,
-        data: s.items[item.id] || { status: "Missing" as ItemStatus },
-      }));
-
-      // Collect missing / unclear per supplier
-      for (const { supplier, data } of entries) {
-        if (data.status === "Missing") {
+      // Only explicit Missing counts — "Not filled" (item absent) is ignored
+      for (const supplier of suppliers) {
+        const data = supplier.items[item.id];
+        if (data?.status === "Missing") {
           missing[supplier.id].push(item.name);
         }
-        if (data.status === "Unclear") {
+        if (data?.status === "Unclear") {
           unclear[supplier.id].push(item.name);
         }
       }
 
       // Detect Different for value-type items
+      // Only compare suppliers that provided an actual value (Not filled excluded)
       if (item.type === "value") {
-        const values = entries
-          .map(({ supplier, data }) => ({
-            supplierName: supplier.name,
-            value: data.value || "—",
+        const provided = suppliers
+          .filter((s) => {
+            const d = s.items[item.id];
+            return d && d.value && d.value.trim() !== "";
+          })
+          .map((s) => ({
+            supplierName: s.name,
+            value: s.items[item.id].value!,
           }));
-        const unique = [...new Set(values.map((v) => v.value))];
-        if (unique.length > 1) {
-          different.push({ itemId: item.id, itemName: item.name, values });
+        if (provided.length >= 2) {
+          const unique = [...new Set(provided.map((v) => v.value))];
+          if (unique.length > 1) {
+            const values = suppliers.map((s) => {
+              const d = s.items[item.id];
+              return {
+                supplierName: s.name,
+                value: d?.value?.trim() ? d.value : "—",
+              };
+            });
+            different.push({ itemId: item.id, itemName: item.name, values });
+          }
         }
       }
     }

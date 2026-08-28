@@ -46,7 +46,7 @@ export function assessSupplierRisks(result: ComparisonResult): SupplierRisk[] {
       if (!CRITICAL_CATEGORY_IDS.includes(cat.id)) continue;
       const missingInCat = cat.items.filter((item) => {
         const data = supplier.items[item.id];
-        return !data || data.status === "Missing";
+        return data?.status === "Missing";
       }).length;
       if (missingInCat >= 2) {
         criticalGaps.push(cat.name);

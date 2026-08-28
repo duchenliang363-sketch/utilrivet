@@ -514,14 +514,16 @@ function CategoryRows({
         <tr key={item.id} className="border-b border-border last:border-b-0 hover:bg-gray-50/70 transition-colors">
           <td className="py-2.5 px-4 text-foreground">{item.name}</td>
           {suppliers.map((s) => {
-            const data = s.items[item.id] || { status: "Missing" as ItemStatus };
+            const data = s.items[item.id];
             const isDiff = item.type === "value" && differentItemIds.has(item.id);
             return (
               <td
                 key={s.id}
                 className={`py-2.5 px-4 ${item.type === "status" ? "text-center" : "text-right"} ${isDiff ? "bg-primary-50/60" : ""}`}
               >
-                {item.type === "status" ? (
+                {!data ? (
+                  <span className="text-xs text-gray-400">Not filled</span>
+                ) : item.type === "status" ? (
                   <StatusBadge status={data.status} />
                 ) : (
                   <span className="text-sm tabular-nums text-foreground">{data.value || "—"}</span>
