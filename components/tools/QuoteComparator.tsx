@@ -182,18 +182,16 @@ function SupplierCard({
                             className={`w-full text-sm px-3 py-1.5 rounded-lg border border-border bg-white text-foreground focus:outline-none focus:border-primary ${data.status === "Missing" ? "opacity-50 cursor-not-allowed" : ""}`}
                           />
                           <div className="flex gap-1.5">
-                            {(["Included", "Missing", "Unclear"] as ItemStatus[]).map((s) => (
+                            {(["Missing", "Unclear"] as ItemStatus[]).map((s) => (
                               <button
                                 key={s}
                                 type="button"
                                 onClick={() => onItemStatusChange(item.id, data.status === s ? undefined : s)}
                                 className={`text-xs px-2 py-0.5 rounded border transition-colors ${
                                   data.status === s
-                                    ? s === "Included"
-                                      ? "bg-green-50 border-green-300 text-green-700"
-                                      : s === "Missing"
-                                        ? "bg-red-50 border-red-300 text-red-700"
-                                        : "bg-amber-50 border-amber-300 text-amber-700"
+                                    ? s === "Missing"
+                                      ? "bg-red-50 border-red-300 text-red-700"
+                                      : "bg-amber-50 border-amber-300 text-amber-700"
                                     : "bg-white border-border text-muted hover:border-border-strong"
                                 }`}
                               >
@@ -254,9 +252,14 @@ function SupplierFormSection({
 
   const updateValue = (sIdx: number, itemId: string, value: string) => {
     const next = [...drafts];
+    const currentItem = next[sIdx].items[itemId] || {};
+    // Non-empty value → auto-set status to Included (unless explicitly Unclear)
+    const newStatus = value.trim()
+      ? (currentItem.status === "Unclear" ? "Unclear" : "Included")
+      : currentItem.status;
     next[sIdx] = {
       ...next[sIdx],
-      items: { ...next[sIdx].items, [itemId]: { ...next[sIdx].items[itemId], value } },
+      items: { ...next[sIdx].items, [itemId]: { ...currentItem, value, status: newStatus } },
     };
     onDraftsChange(next);
   };
