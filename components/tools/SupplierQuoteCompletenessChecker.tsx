@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { checkQuote, buildQuestions, type QuoteCheckResult, type FieldStatus } from "@/lib/quote-checker/engine";
 import { demoQuote } from "@/lib/quote-checker/demo-data";
+import { parseQuoteFile, type ParseResult } from "@/lib/quote-parser";
 import EmptyState from "@/components/EmptyState";
 
 // ─── Status Badge ──────────────────────────────────────────
@@ -27,6 +28,9 @@ export default function SupplierQuoteCompletenessChecker() {
   const [quoteText, setQuoteText] = useState("");
   const [result, setResult] = useState<QuoteCheckResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [parseInfo, setParseInfo] = useState<ParseResult | null>(null);
+  const [parseError, setParseError] = useState("");
+  const [parsing, setParsing] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const scrollToResults = () => {
@@ -53,6 +57,8 @@ export default function SupplierQuoteCompletenessChecker() {
     setQuoteText("");
     setResult(null);
     setCopied(false);
+    setParseInfo(null);
+    setParseError("");
   };
 
   const handleCopy = async () => {
@@ -73,6 +79,25 @@ export default function SupplierQuoteCompletenessChecker() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setParsing(true);
+    setParseError("");
+    setParseInfo(null);
+    try {
+      const result = await parseQuoteFile(file);
+      setParseInfo(result);
+      setQuoteText(result.text);
+      setResult(null);
+    } catch (err) {
+      setParseError(err instanceof Error ? err.message : "Failed to parse file");
+    } finally {
+      setParsing(false);
+      e.target.value = "";
+    }
+  };
+
   const itemsToReview = result?.checks.filter((c) => c.status !== "PRESENT") || [];
   const questions = result ? buildQuestions(result) : [];
 
@@ -82,8 +107,35 @@ export default function SupplierQuoteCompletenessChecker() {
       <div>
         <label className="field-label">Supplier Quote</label>
         <p className="text-[13px] text-muted mb-2">
-          Paste the text from a supplier quotation, proposal, or commercial offer.
+          Upload a PDF or Excel file, or paste the text from a supplier quotation.
         </p>
+
+        {/* File upload */}
+        <div className="flex items-center gap-3 mb-3">
+          <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-primary hover:underline">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+            {parsing ? "Parsing..." : "Upload PDF or Excel"}
+            <input
+              type="file"
+              accept=".pdf,.xlsx,.xls,.csv"
+              onChange={handleFileSelect}
+              className="hidden"
+              disabled={parsing}
+            />
+          </label>
+          {parseInfo && (
+            <span className="text-xs text-muted">
+              {parseInfo.format.toUpperCase()}
+              {parseInfo.pageCount ? ` · ${parseInfo.pageCount} page${parseInfo.pageCount > 1 ? "s" : ""}` : ""}
+              {parseInfo.rowCount ? ` · ${parseInfo.rowCount} rows` : ""}
+              {parseInfo.sheetName ? ` · "${parseInfo.sheetName}"` : ""}
+            </span>
+          )}
+        </div>
+        {parseError && (
+          <p className="text-xs text-red-600 mb-2">{parseError}</p>
+        )}
+
         <textarea
           value={quoteText}
           onChange={(e) => setQuoteText(e.target.value)}
