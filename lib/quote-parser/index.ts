@@ -81,45 +81,84 @@ async function parseXLSX(file: File): Promise<ParseResult> {
     defval: "",
   });
 
-  // Detect header rows and data rows separately.
-  // Header rows contain field labels (Qty, Price, Amount, Unit, etc.) — skip them.
-  // Data rows contain actual values — output each non-empty cell on its own line.
+  // Detect the table header row (contains 2+ column keywords).
+  // Use it to label each data cell as "ColumnName: Value" so the engine
+  // can match field patterns within a single line.
   const HEADER_KEYWORDS = [
     "drawing no", "item no", "description", "specification", "model",
-    "unit", "qty", "quantity", "unit price", "total amount", "remarks",
-    "no.", "#", "序号", "图号", "名称", "规格", "单位", "数量", "单价", "金额", "备注"
+    "unit", "qty", "quantity", "unit price", "total price", "total amount",
+    "amount", "remarks", "brand", "no.", "#",
+    "序号", "图号", "名称", "规格", "单位", "数量", "单价", "金额", "备注", "品牌"
   ];
 
-  function isHeaderRow(row: string[]): boolean {
-    const lower = row.map((c) => String(c ?? "").toLowerCase().trim());
-    const matchCount = lower.filter((cell) =>
-      HEADER_KEYWORDS.some((kw) => cell.includes(kw))
-    ).length;
-    return matchCount >= 2; // At least 2 header keywords = likely a header row
+  function findHeaderRowIndex(): number {
+    for (let i = 0; i < Math.min(rows.length, 10); i++) {
+      const lower = rows[i].map((c) => String(c ?? "").toLowerCase().trim());
+      const matchCount = lower.filter((cell) =>
+        cell.length > 0 && HEADER_KEYWORDS.some((kw) => cell.includes(kw))
+      ).length;
+      if (matchCount >= 2) return i;
+    }
+    return -1;
   }
 
-  // Build text: label-style lines first (for "Label: Value" format), then table cells
+  const headerIdx = findHeaderRowIndex();
+  const headers: string[] = headerIdx >= 0
+    ? rows[headerIdx].map((c) => String(c ?? "").trim())
+    : [];
+
   const textLines: string[] = [];
-  for (const row of rows) {
-    if (isHeaderRow(row)) continue; // Skip table headers
+
+  // Rows before the header: likely key-value metadata (Supplier, Date, etc.)
+  for (let i = 0; i < (headerIdx >= 0 ? headerIdx : rows.length); i++) {
+    const row = rows[i];
     const nonEmpty = row.filter((cell) => String(cell ?? "").trim().length > 0);
     if (nonEmpty.length === 0) continue;
 
-    // If row has exactly 2 cells and first looks like a label, output as "Label: Value"
+    // 2-cell row with label-like first cell → "Label: Value"
     if (nonEmpty.length === 2) {
       const label = String(nonEmpty[0]).trim();
       const value = String(nonEmpty[1]).trim();
-      // Check if first cell looks like a label (contains letters, not just numbers)
-      if (/[a-zA-Z]/.test(label) && !/^\d+$/.test(label)) {
+      if (/[a-zA-Z\u4e00-\u9fff]/.test(label) && !/^\d+$/.test(label)) {
         textLines.push(`${label}: ${value}`);
         continue;
       }
     }
 
-    // Otherwise output each cell on its own line
+    // Multi-cell metadata row: output each cell on its own line
     for (const cell of nonEmpty) {
       const trimmed = String(cell ?? "").trim();
       if (trimmed) textLines.push(trimmed);
+    }
+  }
+
+  // Rows after the header: table data — output as "ColumnName: CellValue"
+  if (headerIdx >= 0) {
+    for (let i = headerIdx + 1; i < rows.length; i++) {
+      const row = rows[i];
+      const nonEmpty = row.filter((cell) => String(cell ?? "").trim().length > 0);
+      if (nonEmpty.length === 0) continue;
+
+      // Map each cell to its column header
+      let hasOutput = false;
+      for (let j = 0; j < row.length; j++) {
+        const cellVal = String(row[j] ?? "").trim();
+        if (!cellVal) continue;
+        const colName = headers[j] || `Column${j + 1}`;
+        // Skip if column header itself is empty or looks like a row number
+        if (!colName || /^\d+$/.test(colName)) {
+          textLines.push(cellVal);
+        } else {
+          textLines.push(`${colName}: ${cellVal}`);
+        }
+        hasOutput = true;
+      }
+      if (!hasOutput && nonEmpty.length > 0) {
+        // Fallback: output cells without headers
+        for (const cell of nonEmpty) {
+          textLines.push(String(cell ?? "").trim());
+        }
+      }
     }
   }
 

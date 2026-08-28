@@ -237,13 +237,26 @@ function extractValue(lines: string[], idx: number): string {
 }
 
 // Find the best matching line for a field.
-// Prefer label-style lines (keyword appears before a colon),
-// then fall back to any bare mention.
+// Priority: 1) Label: Value lines (keyword before colon)
+//           2) Bare mentions that look like values (short, not table rows)
+//           3) Any bare mention
 function findFieldLine(lines: string[], test: (line: string) => boolean): number {
+  // First pass: prefer lines with colon (Label: Value format)
   for (let i = 0; i < lines.length; i++) {
     const sep = lines[i].search(/[:：]/);
     if (sep >= 0 && test(lines[i].slice(0, sep))) return i;
   }
+  // Second pass: bare mentions, but skip table-row-like lines
+  for (let i = 0; i < lines.length; i++) {
+    if (test(lines[i])) {
+      const wordCount = lines[i].split(/\s+/).length;
+      const numberCount = (lines[i].match(/\d+/g) || []).length;
+      // Skip lines that look like table data (many words + multiple numbers)
+      if (wordCount > 6 && numberCount >= 2) continue;
+      return i;
+    }
+  }
+  // Last resort: any match
   return lines.findIndex(test);
 }
 
