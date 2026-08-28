@@ -312,3 +312,15 @@ body {
   line-height: 1.7;
   color: var(--color-gray-600);
 }
+
+/* ============================================================
+   Print styles — Production Line Quote Comparator
+   ============================================================ */
+@media print {
+  .print-hidden {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+}

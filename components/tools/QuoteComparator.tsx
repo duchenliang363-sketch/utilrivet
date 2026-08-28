@@ -4,13 +4,39 @@ import { useState, useMemo } from "react";
 import {
   comparisonCategories,
   compareSuppliers,
+  convertDraftToSuppliers,
   type ItemStatus,
   type ComparisonResult,
+  type DraftSupplier,
 } from "@/lib/quote-comparator/schema";
 import { demoSuppliers } from "@/lib/quote-comparator/demo-data";
+import { assessSupplierRisks } from "@/lib/quote-comparator/risk-assessment";
 
 // ============================================================
-// Status Badge Component
+// Helpers
+// ============================================================
+
+let _supplierCounter = 3;
+function nextSupplierId() {
+  return `supplier-${String.fromCharCode(64 + ++_supplierCounter)}`;
+}
+
+function createEmptyDraft(id: string, name: string): DraftSupplier {
+  const items: DraftSupplier["items"] = {};
+  for (const cat of comparisonCategories) {
+    for (const item of cat.items) {
+      items[item.id] = {};
+    }
+  }
+  return { id, name, items };
+}
+
+function createInitialDrafts(): DraftSupplier[] {
+  return [createEmptyDraft("supplier-a", "Supplier A"), createEmptyDraft("supplier-b", "Supplier B")];
+}
+
+// ============================================================
+// Status Badge (existing)
 // ============================================================
 
 function StatusBadge({ status }: { status: ItemStatus }) {
@@ -30,10 +56,254 @@ function StatusBadge({ status }: { status: ItemStatus }) {
 }
 
 // ============================================================
+// Supplier Form — Single Supplier Card
+// ============================================================
+
+function SupplierCard({
+  draft,
+  total,
+  openSections,
+  onToggleSection,
+  onNameChange,
+  onItemStatusChange,
+  onItemValueChange,
+  onDelete,
+}: {
+  draft: DraftSupplier;
+  total: number;
+  openSections: Record<string, boolean>;
+  onToggleSection: (key: string) => void;
+  onNameChange: (name: string) => void;
+  onItemStatusChange: (itemId: string, status: ItemStatus) => void;
+  onItemValueChange: (itemId: string, value: string) => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="rounded-xl border border-border overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-3 p-4 bg-surface border-b border-border">
+        <input
+          type="text"
+          value={draft.name}
+          onChange={(e) => onNameChange(e.target.value)}
+          className="flex-1 min-w-0 bg-transparent text-sm font-semibold text-foreground border-0 border-b border-transparent focus:border-border-strong focus:outline-none px-0 py-0.5"
+          placeholder="Supplier name"
+        />
+        {total > 2 && (
+          <button type="button" onClick={onDelete} className="text-xs text-red-600 hover:text-red-800 shrink-0">
+            Remove
+          </button>
+        )}
+      </div>
+
+      {/* Accordion Categories */}
+      {comparisonCategories.map((cat) => {
+        const key = `${draft.id}-${cat.id}`;
+        const isOpen = openSections[key] || false;
+
+        // Summary counts
+        let summary = "";
+        const inc = cat.items.filter((i) => draft.items[i.id]?.status === "Included").length;
+        const mis = cat.items.filter((i) => draft.items[i.id]?.status === "Missing").length;
+        const unc = cat.items.filter((i) => draft.items[i.id]?.status === "Unclear").length;
+        if (cat.items.every((i) => i.type === "status")) {
+          const parts: string[] = [];
+          if (inc) parts.push(`${inc} included`);
+          if (mis) parts.push(`${mis} missing`);
+          if (unc) parts.push(`${unc} unclear`);
+          summary = parts.join(" · ") || "Not filled";
+        } else {
+          const filled = cat.items.filter((i) => {
+            const d = draft.items[i.id];
+            return (d?.value?.trim() ?? "") !== "" || d?.status !== undefined;
+          }).length;
+          summary = filled > 0 ? `${filled} of ${cat.items.length} filled` : "Not filled";
+        }
+
+        return (
+          <div key={cat.id} className="border-b border-border last:border-b-0">
+            <button
+              type="button"
+              onClick={() => onToggleSection(key)}
+              className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-surface-hover transition-colors"
+            >
+              <span className="text-sm font-medium text-foreground">{cat.name}</span>
+              <span className="flex items-center gap-2">
+                <span className="text-xs text-muted">{summary}</span>
+                <svg
+                  className={`w-4 h-4 text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </button>
+
+            {isOpen && (
+              <div className="px-4 pb-3 space-y-3">
+                {cat.items.map((item) => {
+                  const data = draft.items[item.id] || {};
+                  return (
+                    <div key={item.id}>
+                      <p className="text-xs font-medium text-foreground mb-1">{item.name}</p>
+                      {item.type === "status" ? (
+                        <div className="flex gap-1.5">
+                          {(["Included", "Missing", "Unclear"] as ItemStatus[]).map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => onItemStatusChange(item.id, data.status === s ? ("Included" as ItemStatus) : s)}
+                              className={`text-xs px-2.5 py-1 rounded border transition-colors ${
+                                data.status === s
+                                  ? s === "Included"
+                                    ? "bg-green-50 border-green-300 text-green-700"
+                                    : s === "Missing"
+                                      ? "bg-red-50 border-red-300 text-red-700"
+                                      : "bg-amber-50 border-amber-300 text-amber-700"
+                                  : "bg-white border-border text-muted hover:border-border-strong"
+                              }`}
+                            >
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5">
+                          <input
+                            type="text"
+                            value={data.value || ""}
+                            onChange={(e) => onItemValueChange(item.id, e.target.value)}
+                            placeholder={`Enter ${item.name.toLowerCase()}`}
+                            className="w-full text-sm px-3 py-1.5 rounded-lg border border-border bg-white text-foreground focus:outline-none focus:border-primary"
+                          />
+                          <div className="flex gap-1.5">
+                            {(["Included", "Missing", "Unclear"] as ItemStatus[]).map((s) => (
+                              <button
+                                key={s}
+                                type="button"
+                                onClick={() => onItemStatusChange(item.id, data.status === s ? ("Included" as ItemStatus) : s)}
+                                className={`text-xs px-2 py-0.5 rounded border transition-colors ${
+                                  data.status === s
+                                    ? s === "Included"
+                                      ? "bg-green-50 border-green-300 text-green-700"
+                                      : s === "Missing"
+                                        ? "bg-red-50 border-red-300 text-red-700"
+                                        : "bg-amber-50 border-amber-300 text-amber-700"
+                                    : "bg-white border-border text-muted hover:border-border-strong"
+                                }`}
+                              >
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============================================================
+// Supplier Form Section (all suppliers)
+// ============================================================
+
+function SupplierFormSection({
+  drafts,
+  onDraftsChange,
+}: {
+  drafts: DraftSupplier[];
+  onDraftsChange: (d: DraftSupplier[]) => void;
+}) {
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (key: string) => {
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const updateName = (index: number, name: string) => {
+    const next = [...drafts];
+    next[index] = { ...next[index], name };
+    onDraftsChange(next);
+  };
+
+  const updateStatus = (sIdx: number, itemId: string, status: ItemStatus) => {
+    const next = [...drafts];
+    next[sIdx] = {
+      ...next[sIdx],
+      items: { ...next[sIdx].items, [itemId]: { ...next[sIdx].items[itemId], status } },
+    };
+    onDraftsChange(next);
+  };
+
+  const updateValue = (sIdx: number, itemId: string, value: string) => {
+    const next = [...drafts];
+    next[sIdx] = {
+      ...next[sIdx],
+      items: { ...next[sIdx].items, [itemId]: { ...next[sIdx].items[itemId], value } },
+    };
+    onDraftsChange(next);
+  };
+
+  const addSupplier = () => {
+    if (drafts.length >= 3) return;
+    const id = nextSupplierId();
+    const letters = ["A", "B", "C", "D"];
+    onDraftsChange([...drafts, createEmptyDraft(id, `Supplier ${letters[drafts.length]}`)]);
+  };
+
+  const removeSupplier = (index: number) => {
+    if (drafts.length <= 2) return;
+    onDraftsChange(drafts.filter((_, i) => i !== index));
+  };
+
+  return (
+    <section className="print-hidden">
+      <h2 className="text-lg font-semibold text-foreground mb-4">Enter Your Quotations</h2>
+      <div className="space-y-6">
+        {drafts.map((draft, i) => (
+          <SupplierCard
+            key={draft.id}
+            draft={draft}
+
+            total={drafts.length}
+            openSections={openSections}
+            onToggleSection={toggleSection}
+            onNameChange={(name) => updateName(i, name)}
+            onItemStatusChange={(itemId, status) => updateStatus(i, itemId, status)}
+            onItemValueChange={(itemId, value) => updateValue(i, itemId, value)}
+            onDelete={() => removeSupplier(i)}
+          />
+        ))}
+      </div>
+
+      {drafts.length < 3 && (
+        <button
+          type="button"
+          onClick={addSupplier}
+          className="mt-4 text-sm text-primary hover:text-primary-hover font-medium"
+        >
+          + Add Supplier ({drafts.length}/3)
+        </button>
+      )}
+
+      <p className="mt-3 text-xs text-muted">PDF/XLSX import is planned for a future version.</p>
+    </section>
+  );
+}
+
+// ============================================================
 // Main Component
 // ============================================================
 
 export default function QuoteComparator() {
+  const [drafts, setDrafts] = useState<DraftSupplier[]>(createInitialDrafts);
   const [result, setResult] = useState<ComparisonResult | null>(null);
   const [isDemo, setIsDemo] = useState(false);
 
@@ -43,97 +313,110 @@ export default function QuoteComparator() {
     setIsDemo(true);
   };
 
-  const handleReset = () => {
-    setResult(null);
+  const handleCompare = () => {
+    const suppliers = convertDraftToSuppliers(drafts);
+    const r = compareSuppliers(suppliers);
+    setResult(r);
     setIsDemo(false);
   };
 
+  const handleReset = () => {
+    setResult(null);
+    setIsDemo(false);
+    setDrafts(createInitialDrafts());
+  };
+
+  const handlePrint = () => window.print();
+
   return (
     <div className="space-y-8">
-      {/* Upload Area */}
+      {/* Input Form */}
       {!result && (
-        <section>
-          <h2 className="text-lg font-semibold text-foreground mb-3">Upload Quotations</h2>
-          <div className="rounded-xl border-2 border-dashed border-border p-8 text-center">
-            <svg className="mx-auto h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-            </svg>
-            <p className="mt-3 text-sm text-muted">
-              Drag and drop PDF or XLSX files here (2–3 quotations)
-            </p>
-            <p className="mt-1 text-xs text-muted">
-              File analysis is currently in preview / demo mode.
+        <>
+          <SupplierFormSection drafts={drafts} onDraftsChange={setDrafts} />
+
+          <div className="flex flex-wrap gap-3 print-hidden">
+            <button type="button" onClick={handleCompare} className="btn btn-primary">
+              Compare Quotations
+            </button>
+            <button type="button" onClick={handleDemo} className="btn btn-secondary">
+              Try Example
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Results */}
+      {result && (
+        <>
+          {/* Print Header (hidden on screen) */}
+          <div className="hidden print:block mb-6">
+            <h1 className="text-2xl font-bold">Production Line Quote Comparison</h1>
+            <p className="text-sm text-muted mt-1">
+              Suppliers: {result.suppliers.map((s) => s.name).join(", ")}
             </p>
           </div>
 
-          <div className="mt-4 rounded-xl border border-border p-4">
-            <p className="text-xs text-muted mb-2">Or paste quotation text:</p>
-            <textarea
-              className="field-textarea"
-              rows={3}
-              placeholder="Paste quotation content here..."
-              disabled
-            />
-            <p className="mt-1 text-xs text-muted">
-              Text parsing is currently in preview / demo mode.
-            </p>
+          {/* Action Bar */}
+          <div className="flex flex-wrap gap-3 print-hidden">
+            <button type="button" onClick={handleReset} className="btn btn-secondary">
+              &larr; Start Over
+            </button>
+            <button type="button" onClick={handlePrint} className="btn btn-secondary">
+              Print Comparison Report
+            </button>
           </div>
-        </section>
+
+          {/* Demo Notice */}
+          {isDemo && (
+            <div className="rounded-xl border border-primary-100 bg-primary-50 p-4 print-hidden">
+              <p className="text-sm text-blue-800">
+                <span className="font-semibold">Demo Mode</span> — Showing 3 fictional suppliers.
+                Supplier B has the lowest price ($72,000) but is missing key items.
+                This demonstrates why apples-to-apples comparison matters.
+              </p>
+            </div>
+          )}
+
+          <ComparisonResults result={result} />
+        </>
       )}
 
-      {/* Try Demo / Reset */}
-      <div className="flex gap-3">
-        {!result ? (
-          <button type="button" onClick={handleDemo} className="btn btn-primary">
-            Try Demo
-          </button>
-        ) : (
-          <button type="button" onClick={handleReset} className="btn btn-secondary">
-            &larr; Start Over
-          </button>
-        )}
-      </div>
 
-      {/* Demo Notice */}
-      {result && isDemo && (
-        <div className="rounded-xl border border-primary-100 bg-primary-50 p-4">
-          <p className="text-sm text-blue-800">
-            <span className="font-semibold">Demo Mode</span> — Showing 3 fictional suppliers.
-            Supplier B has the lowest price ($72,000) but is missing key items.
-            This demonstrates why apples-to-apples comparison matters.
-          </p>
-        </div>
-      )}
-
-      {/* Comparison Results */}
-      {result && <ComparisonResults result={result} />}
     </div>
   );
 }
 
 // ============================================================
-// Comparison Results (extracted for clarity)
+// Comparison Results
 // ============================================================
 
 function ComparisonResults({ result }: { result: ComparisonResult }) {
+  const risks = useMemo(() => assessSupplierRisks(result), [result]);
+
   return (
     <div className="space-y-10">
       <ComparisonMatrix result={result} />
+      <RiskSummarySection risks={risks} />
       <MissingItemsSection result={result} />
       <MajorDifferencesSection result={result} />
       <QuestionsSection result={result} />
+
+      {/* Print footer */}
+      <div className="hidden print:block mt-12 pt-4 border-t border-border">
+        <p className="text-xs text-muted text-center">Generated with UtilRivet</p>
+      </div>
     </div>
   );
 }
 
 // ============================================================
-// Comparison Matrix Table
+// Comparison Matrix Table (existing, unchanged)
 // ============================================================
 
 function ComparisonMatrix({ result }: { result: ComparisonResult }) {
   const { suppliers } = result;
 
-  // Find which value items have different values across suppliers
   const differentItemIds = useMemo(() => {
     const ids = new Set<string>();
     for (const diff of result.different) {
@@ -223,7 +506,63 @@ function CategoryRows({
 }
 
 // ============================================================
-// Missing Items Section
+// Commercial Risk Summary (P1 — new)
+// ============================================================
+
+function RiskSummarySection({ risks }: { risks: ReturnType<typeof assessSupplierRisks> }) {
+  const riskColors: Record<string, { bg: string; text: string; border: string }> = {
+    Low: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200" },
+    Medium: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
+    High: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
+  };
+
+  return (
+    <section>
+      <h2 className="text-lg font-semibold text-foreground">Commercial Risk Summary</h2>
+      <p className="mt-1 text-sm text-muted">
+        Quick risk overview based on missing items, unclear entries, and critical-category gaps.
+      </p>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {risks.map((r) => {
+          const c = riskColors[r.riskLevel];
+          return (
+            <div key={r.supplierId} className={`rounded-xl border p-4 ${c.border} ${c.bg}`}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-foreground">{r.supplierName}</h3>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded ${c.text} ${c.bg}`}>
+                  {r.riskLevel}
+                </span>
+              </div>
+              <dl className="space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-muted">Missing items</dt>
+                  <dd className="font-medium text-foreground">{r.missingCount}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted">Unclear items</dt>
+                  <dd className="font-medium text-foreground">{r.unclearCount}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted">Major differences</dt>
+                  <dd className="font-medium text-foreground">{r.majorDifferenceCount}</dd>
+                </div>
+              </dl>
+              {r.criticalGaps.length > 0 && (
+                <div className="mt-3 pt-2 border-t border-border/50">
+                  <p className="text-xs text-muted">Critical gaps:</p>
+                  <p className="text-xs font-medium text-foreground">{r.criticalGaps.join(", ")}</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
+// Missing Items Section (existing, unchanged)
 // ============================================================
 
 function MissingItemsSection({ result }: { result: ComparisonResult }) {
@@ -261,7 +600,7 @@ function MissingItemsSection({ result }: { result: ComparisonResult }) {
 }
 
 // ============================================================
-// Major Differences Section
+// Major Differences Section (existing, unchanged)
 // ============================================================
 
 function MajorDifferencesSection({ result }: { result: ComparisonResult }) {
@@ -293,7 +632,7 @@ function MajorDifferencesSection({ result }: { result: ComparisonResult }) {
 }
 
 // ============================================================
-// Questions to Ask Suppliers
+// Questions to Ask Suppliers (existing, unchanged)
 // ============================================================
 
 function QuestionsSection({ result }: { result: ComparisonResult }) {
@@ -329,4 +668,3 @@ function QuestionsSection({ result }: { result: ComparisonResult }) {
     </section>
   );
 }
-

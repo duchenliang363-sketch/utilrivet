@@ -191,3 +191,53 @@ export function compareSuppliers(suppliers: Supplier[]): ComparisonResult {
 
   return { suppliers, missing, unclear, different, questions };
 }
+
+// ============================================================
+// Draft Types (for user input form)
+// ============================================================
+
+export interface DraftItemData {
+  status?: ItemStatus;
+  value?: string;
+}
+
+export interface DraftSupplier {
+  id: string;
+  name: string;
+  items: Record<string, DraftItemData>;
+}
+
+// ---------------------------------------------------------------
+// Convert draft form data → Supplier[] for compareSuppliers()
+// ---------------------------------------------------------------
+
+export function convertDraftToSuppliers(drafts: DraftSupplier[]): Supplier[] {
+  return drafts.map((draft) => {
+    const items: Supplier["items"] = {};
+    for (const category of comparisonCategories) {
+      for (const item of category.items) {
+        const data = draft.items[item.id];
+        if (!data) continue;
+
+        const hasStatus = data.status !== undefined;
+        const hasValue = data.value !== undefined && data.value.trim() !== "";
+
+        if (item.type === "status") {
+          // Status-type: include if user explicitly selected a status
+          if (hasStatus) {
+            items[item.id] = { status: data.status! };
+          }
+        } else {
+          // Value-type: include if status set or value entered
+          if (hasStatus || hasValue) {
+            items[item.id] = {
+              status: data.status || (hasValue ? "Included" : "Missing"),
+              value: hasValue ? data.value!.trim() : undefined,
+            };
+          }
+        }
+      }
+    }
+    return { id: draft.id, name: draft.name, items };
+  });
+}
