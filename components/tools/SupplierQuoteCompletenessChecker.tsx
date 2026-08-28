@@ -31,6 +31,7 @@ export default function SupplierQuoteCompletenessChecker() {
   const [parseInfo, setParseInfo] = useState<ParseResult | null>(null);
   const [parseError, setParseError] = useState("");
   const [parsing, setParsing] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const scrollToResults = () => {
@@ -98,6 +99,44 @@ export default function SupplierQuoteCompletenessChecker() {
     }
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    setParsing(true);
+    setParseError("");
+    setParseInfo(null);
+    try {
+      const result = await parseQuoteFile(file);
+      setParseInfo(result);
+      setQuoteText(result.text);
+      setResult(null);
+    } catch (err) {
+      setParseError(err instanceof Error ? err.message : "Failed to parse file");
+    } finally {
+      setParsing(false);
+    }
+  };
+
   const itemsToReview = result?.checks.filter((c) => c.status !== "PRESENT") || [];
   const questions = result ? buildQuestions(result) : [];
 
@@ -110,27 +149,44 @@ export default function SupplierQuoteCompletenessChecker() {
           Upload a PDF or Excel file, or paste the text from a supplier quotation.
         </p>
 
-        {/* File upload */}
-        <div className="flex items-center gap-3 mb-3">
-          <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-primary hover:underline">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-            {parsing ? "Parsing..." : "Upload PDF or Excel"}
-            <input
-              type="file"
-              accept=".pdf,.xlsx,.xls,.csv"
-              onChange={handleFileSelect}
-              className="hidden"
-              disabled={parsing}
-            />
-          </label>
-          {parseInfo && (
-            <span className="text-xs text-muted">
-              {parseInfo.format.toUpperCase()}
-              {parseInfo.pageCount ? ` · ${parseInfo.pageCount} page${parseInfo.pageCount > 1 ? "s" : ""}` : ""}
-              {parseInfo.rowCount ? ` · ${parseInfo.rowCount} rows` : ""}
-              {parseInfo.sheetName ? ` · "${parseInfo.sheetName}"` : ""}
-            </span>
-          )}
+        {/* File drop zone + upload */}
+        <div
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`relative mb-3 rounded-xl border-2 border-dashed transition-colors ${
+            dragging
+              ? "border-primary bg-primary/5"
+              : "border-border hover:border-muted"
+          }`}
+        >
+          <div className="flex flex-col items-center justify-center gap-2 px-4 py-6">
+            <svg className="w-8 h-8 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+            <p className="text-sm text-muted">
+              Drag & drop a file here, or{" "}
+              <label className="cursor-pointer font-medium text-primary hover:underline">
+                browse
+                <input
+                  type="file"
+                  accept=".pdf,.xlsx,.xls,.csv"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  disabled={parsing}
+                />
+              </label>
+            </p>
+            <p className="text-xs text-muted">PDF, Excel (.xlsx, .xls, .csv)</p>
+            {parseInfo && (
+              <span className="text-xs font-medium text-green-700">
+                ✓ {parseInfo.format.toUpperCase()}
+                {parseInfo.pageCount ? ` · ${parseInfo.pageCount} page${parseInfo.pageCount > 1 ? "s" : ""}` : ""}
+                {parseInfo.rowCount ? ` · ${parseInfo.rowCount} rows` : ""}
+                {parseInfo.sheetName ? ` · "${parseInfo.sheetName}"` : ""}
+              </span>
+            )}
+            {parsing && <span className="text-xs text-primary">Parsing...</span>}
+          </div>
         </div>
         {parseError && (
           <p className="text-xs text-red-600 mb-2">{parseError}</p>

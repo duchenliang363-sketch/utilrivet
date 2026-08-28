@@ -11,6 +11,8 @@ import {
 } from "@/lib/quote-comparator/schema";
 import { demoSuppliers } from "@/lib/quote-comparator/demo-data";
 import { assessSupplierRisks } from "@/lib/quote-comparator/risk-assessment";
+import { parseQuoteFile } from "@/lib/quote-parser";
+import { mapTextToFields, mappedToDraft } from "@/lib/quote-mapper/text-to-draft";
 
 // ============================================================
 // Helpers
@@ -68,6 +70,8 @@ function SupplierCard({
   onItemStatusChange,
   onItemValueChange,
   onDelete,
+  onFileImport,
+  importing,
 }: {
   draft: DraftSupplier;
   total: number;
@@ -78,6 +82,8 @@ function SupplierCard({
   onItemStatusChange: (itemId: string, status: ItemStatus | undefined) => void;
   onItemValueChange: (itemId: string, value: string) => void;
   onDelete: () => void;
+  onFileImport: (file: File) => Promise<void>;
+  importing: boolean;
 }) {
   return (
     <div className="rounded-xl border border-border overflow-hidden">
@@ -90,6 +96,22 @@ function SupplierCard({
           className={`flex-1 min-w-0 bg-transparent text-sm font-semibold text-foreground border-0 border-b ${nameError ? "border-red-400" : "border-transparent"} focus:border-border-strong focus:outline-none px-0 py-0.5`}
           placeholder="Supplier name"
         />
+        <label className={`text-xs cursor-pointer shrink-0 px-2 py-1 rounded border transition-colors ${
+          importing ? "border-border text-muted cursor-wait" : "border-border text-primary hover:bg-primary/5"
+        }`}>
+          {importing ? "Importing..." : "Import File"}
+          <input
+            type="file"
+            accept=".pdf,.xlsx,.xls,.csv"
+            className="hidden"
+            disabled={importing}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (file) await onFileImport(file);
+              e.target.value = "";
+            }}
+          />
+        </label>
         {total > 2 && (
           <button type="button" onClick={onDelete} className="text-xs text-red-600 hover:text-red-800 shrink-0">
             Remove
@@ -225,6 +247,8 @@ function SupplierFormSection({
   onDraftsChange: (d: DraftSupplier[]) => void;
 }) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [importingIdx, setImportingIdx] = useState<number | null>(null);
+  const [importError, setImportError] = useState("");
 
   const toggleSection = (key: string) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -275,6 +299,33 @@ function SupplierFormSection({
     onDraftsChange(drafts.filter((_, i) => i !== index));
   };
 
+  const handleFileImport = async (sIdx: number, file: File) => {
+    setImportingIdx(sIdx);
+    setImportError("");
+    try {
+      const parsed = await parseQuoteFile(file);
+      const fields = mapTextToFields(parsed.text);
+      const supplierName = fields.supplierName || drafts[sIdx].name || `Supplier ${nextSupplierLetter(sIdx)}`;
+      const draft = mappedToDraft(fields, supplierName, drafts[sIdx].id);
+      // Merge: keep existing items, overlay mapped items
+      const merged: DraftSupplier = {
+        ...drafts[sIdx],
+        name: supplierName,
+        items: { ...drafts[sIdx].items },
+      };
+      for (const [itemId, itemData] of Object.entries(draft.items)) {
+        merged.items[itemId] = { ...merged.items[itemId], ...itemData };
+      }
+      const next = [...drafts];
+      next[sIdx] = merged;
+      onDraftsChange(next);
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : "Failed to import file");
+    } finally {
+      setImportingIdx(null);
+    }
+  };
+
   // Name validation
   const nameErrors = drafts.map((d, i) => {
     if (!d.name.trim()) return "Name is required";
@@ -298,6 +349,8 @@ function SupplierFormSection({
             onItemStatusChange={(itemId, status) => updateStatus(i, itemId, status)}
             onItemValueChange={(itemId, value) => updateValue(i, itemId, value)}
             onDelete={() => removeSupplier(i)}
+            onFileImport={(file) => handleFileImport(i, file)}
+            importing={importingIdx === i}
           />
         ))}
       </div>
@@ -312,7 +365,10 @@ function SupplierFormSection({
         </button>
       )}
 
-      <p className="mt-3 text-xs text-muted">PDF/XLSX import is planned for a future version.</p>
+      {importError && (
+        <p className="mt-3 text-xs text-red-600">{importError}</p>
+      )}
+      <p className="mt-2 text-xs text-muted">Import a PDF or Excel file to auto-fill supplier data. You can edit any field after import.</p>
     </section>
   );
 }
