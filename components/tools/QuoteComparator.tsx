@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import {
   comparisonCategories,
   compareSuppliers,
@@ -70,8 +70,6 @@ function SupplierCard({
   onItemStatusChange,
   onItemValueChange,
   onDelete,
-  onFileImport,
-  importing,
 }: {
   draft: DraftSupplier;
   total: number;
@@ -82,8 +80,6 @@ function SupplierCard({
   onItemStatusChange: (itemId: string, status: ItemStatus | undefined) => void;
   onItemValueChange: (itemId: string, value: string) => void;
   onDelete: () => void;
-  onFileImport: (file: File) => Promise<void>;
-  importing: boolean;
 }) {
   return (
     <div className="rounded-xl border border-border overflow-hidden">
@@ -96,22 +92,6 @@ function SupplierCard({
           className={`flex-1 min-w-0 bg-transparent text-sm font-semibold text-foreground border-0 border-b ${nameError ? "border-red-400" : "border-transparent"} focus:border-border-strong focus:outline-none px-0 py-0.5`}
           placeholder="Supplier name"
         />
-        <label className={`text-xs cursor-pointer shrink-0 px-2 py-1 rounded border transition-colors ${
-          importing ? "border-border text-muted cursor-wait" : "border-border text-primary hover:bg-primary/5"
-        }`}>
-          {importing ? "Importing..." : "Import File"}
-          <input
-            type="file"
-            accept=".pdf,.xlsx,.xls,.csv"
-            className="hidden"
-            disabled={importing}
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (file) await onFileImport(file);
-              e.target.value = "";
-            }}
-          />
-        </label>
         {total > 2 && (
           <button type="button" onClick={onDelete} className="text-xs text-red-600 hover:text-red-800 shrink-0">
             Remove
@@ -247,8 +227,7 @@ function SupplierFormSection({
   onDraftsChange: (d: DraftSupplier[]) => void;
 }) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-  const [importingIdx, setImportingIdx] = useState<number | null>(null);
-  const [importError, setImportError] = useState("");
+
 
   const toggleSection = (key: string) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -299,33 +278,6 @@ function SupplierFormSection({
     onDraftsChange(drafts.filter((_, i) => i !== index));
   };
 
-  const handleFileImport = async (sIdx: number, file: File) => {
-    setImportingIdx(sIdx);
-    setImportError("");
-    try {
-      const parsed = await parseQuoteFile(file);
-      const fields = mapTextToFields(parsed.text);
-      const supplierName = fields.supplierName || drafts[sIdx].name || `Supplier ${nextSupplierLetter(sIdx)}`;
-      const draft = mappedToDraft(fields, supplierName, drafts[sIdx].id);
-      // Merge: keep existing items, overlay mapped items
-      const merged: DraftSupplier = {
-        ...drafts[sIdx],
-        name: supplierName,
-        items: { ...drafts[sIdx].items },
-      };
-      for (const [itemId, itemData] of Object.entries(draft.items)) {
-        merged.items[itemId] = { ...merged.items[itemId], ...itemData };
-      }
-      const next = [...drafts];
-      next[sIdx] = merged;
-      onDraftsChange(next);
-    } catch (err) {
-      setImportError(err instanceof Error ? err.message : "Failed to import file");
-    } finally {
-      setImportingIdx(null);
-    }
-  };
-
   // Name validation
   const nameErrors = drafts.map((d, i) => {
     if (!d.name.trim()) return "Name is required";
@@ -349,8 +301,6 @@ function SupplierFormSection({
             onItemStatusChange={(itemId, status) => updateStatus(i, itemId, status)}
             onItemValueChange={(itemId, value) => updateValue(i, itemId, value)}
             onDelete={() => removeSupplier(i)}
-            onFileImport={(file) => handleFileImport(i, file)}
-            importing={importingIdx === i}
           />
         ))}
       </div>
@@ -365,11 +315,107 @@ function SupplierFormSection({
         </button>
       )}
 
-      {importError && (
-        <p className="mt-3 text-xs text-red-600">{importError}</p>
-      )}
-      <p className="mt-2 text-xs text-muted">Import a PDF or Excel file to auto-fill supplier data. You can edit any field after import.</p>
+      <p className="mt-3 text-xs text-muted">Drag files above to auto-fill, or enter data manually. You can edit any field after import.</p>
     </section>
+  );
+}
+
+
+// ============================================================
+// File Drop Zone — drag 2-3 quotation files
+// ============================================================
+
+function FileDropZone({ onFilesImported }: { onFilesImported: (drafts: DraftSupplier[]) => void }) {
+  const [dragging, setDragging] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const processFiles = useCallback(async (files: FileList | File[]) => {
+    const fileArray = Array.from(files).filter((f) => {
+      const name = f.name.toLowerCase();
+      return name.endsWith(".pdf") || name.endsWith(".xlsx") || name.endsWith(".xls") || name.endsWith(".csv");
+    });
+    if (fileArray.length === 0) {
+      setError("No supported files. Please upload PDF or Excel files.");
+      return;
+    }
+    if (fileArray.length > 3) {
+      setError("Maximum 3 files. Only the first 3 will be processed.");
+    }
+    const toProcess = fileArray.slice(0, 3);
+    setLoading(true);
+    setError("");
+    try {
+      const newDrafts: DraftSupplier[] = [];
+      for (let i = 0; i < toProcess.length; i++) {
+        const parsed = await parseQuoteFile(toProcess[i]);
+        const fields = mapTextToFields(parsed.text);
+        const letter = nextSupplierLetter(i);
+        const name = fields.supplierName || `Supplier ${letter}`;
+        const draft = mappedToDraft(fields, name, `supplier-${letter.toLowerCase()}`);
+        // Fill empty items with the mapped data
+        const full: DraftSupplier = createEmptyDraft(draft.id, draft.name);
+        for (const [itemId, itemData] of Object.entries(draft.items)) {
+          full.items[itemId] = { ...full.items[itemId], ...itemData };
+        }
+        newDrafts.push(full);
+      }
+      onFilesImported(newDrafts);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to process files");
+    } finally {
+      setLoading(false);
+    }
+  }, [onFilesImported]);
+
+  return (
+    <div
+      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+      onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setDragging(true); }}
+      onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragging(false); }}
+      onDrop={async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragging(false);
+        await processFiles(e.dataTransfer.files);
+      }}
+      className={`rounded-xl border-2 border-dashed transition-colors ${
+        dragging ? "border-primary bg-primary/5" : "border-border hover:border-muted"
+      }`}
+    >
+      <div className="flex flex-col items-center justify-center gap-2 px-4 py-8">
+        <svg className="w-10 h-10 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        <p className="text-sm font-medium text-foreground">
+          Drag & drop supplier quotation files here
+        </p>
+        <p className="text-xs text-muted">
+          PDF, Excel (.xlsx, .xls, .csv) — 2 to 3 files
+        </p>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={loading}
+          className="mt-1 text-xs text-primary hover:underline disabled:opacity-50"
+        >
+          {loading ? "Processing..." : "or browse files"}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          accept=".pdf,.xlsx,.xls,.csv"
+          className="hidden"
+          onChange={async (e) => {
+            if (e.target.files) await processFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+        {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+      </div>
+    </div>
   );
 }
 
@@ -381,6 +427,12 @@ export default function QuoteComparator() {
   const [drafts, setDrafts] = useState<DraftSupplier[]>(createInitialDrafts);
   const [result, setResult] = useState<ComparisonResult | null>(null);
   const [isDemo, setIsDemo] = useState(false);
+
+  const handleFilesImported = useCallback((newDrafts: DraftSupplier[]) => {
+    setDrafts(newDrafts);
+    setResult(null);
+    setIsDemo(false);
+  }, []);
 
   const handleDemo = () => {
     const r = compareSuppliers(demoSuppliers);
@@ -419,6 +471,7 @@ export default function QuoteComparator() {
       {/* Input Form */}
       {!result && (
         <>
+          <FileDropZone onFilesImported={handleFilesImported} />
           <SupplierFormSection drafts={drafts} onDraftsChange={setDrafts} />
 
           <div className="flex flex-wrap gap-3 print-hidden">
