@@ -16,9 +16,8 @@ import { assessSupplierRisks } from "@/lib/quote-comparator/risk-assessment";
 // Helpers
 // ============================================================
 
-let _supplierCounter = 3;
-function nextSupplierId() {
-  return `supplier-${String.fromCharCode(64 + ++_supplierCounter)}`;
+function nextSupplierLetter(count: number): string {
+  return ["A", "B", "C"][count] ?? String(count + 1);
 }
 
 function createEmptyDraft(id: string, name: string): DraftSupplier {
@@ -62,6 +61,7 @@ function StatusBadge({ status }: { status: ItemStatus }) {
 function SupplierCard({
   draft,
   total,
+  nameError,
   openSections,
   onToggleSection,
   onNameChange,
@@ -71,10 +71,11 @@ function SupplierCard({
 }: {
   draft: DraftSupplier;
   total: number;
+  nameError?: string;
   openSections: Record<string, boolean>;
   onToggleSection: (key: string) => void;
   onNameChange: (name: string) => void;
-  onItemStatusChange: (itemId: string, status: ItemStatus) => void;
+  onItemStatusChange: (itemId: string, status: ItemStatus | undefined) => void;
   onItemValueChange: (itemId: string, value: string) => void;
   onDelete: () => void;
 }) {
@@ -86,7 +87,7 @@ function SupplierCard({
           type="text"
           value={draft.name}
           onChange={(e) => onNameChange(e.target.value)}
-          className="flex-1 min-w-0 bg-transparent text-sm font-semibold text-foreground border-0 border-b border-transparent focus:border-border-strong focus:outline-none px-0 py-0.5"
+          className={`flex-1 min-w-0 bg-transparent text-sm font-semibold text-foreground border-0 border-b ${nameError ? "border-red-400" : "border-transparent"} focus:border-border-strong focus:outline-none px-0 py-0.5`}
           placeholder="Supplier name"
         />
         {total > 2 && (
@@ -95,6 +96,9 @@ function SupplierCard({
           </button>
         )}
       </div>
+      {nameError && (
+        <p className="px-4 py-1 text-xs text-red-600 bg-red-50">{nameError}</p>
+      )}
 
       {/* Accordion Categories */}
       {comparisonCategories.map((cat) => {
@@ -152,7 +156,7 @@ function SupplierCard({
                             <button
                               key={s}
                               type="button"
-                              onClick={() => onItemStatusChange(item.id, data.status === s ? ("Included" as ItemStatus) : s)}
+                              onClick={() => onItemStatusChange(item.id, data.status === s ? undefined : s)}
                               className={`text-xs px-2.5 py-1 rounded border transition-colors ${
                                 data.status === s
                                   ? s === "Included"
@@ -173,15 +177,16 @@ function SupplierCard({
                             type="text"
                             value={data.value || ""}
                             onChange={(e) => onItemValueChange(item.id, e.target.value)}
+                            disabled={data.status === "Missing"}
                             placeholder={`Enter ${item.name.toLowerCase()}`}
-                            className="w-full text-sm px-3 py-1.5 rounded-lg border border-border bg-white text-foreground focus:outline-none focus:border-primary"
+                            className={`w-full text-sm px-3 py-1.5 rounded-lg border border-border bg-white text-foreground focus:outline-none focus:border-primary ${data.status === "Missing" ? "opacity-50 cursor-not-allowed" : ""}`}
                           />
                           <div className="flex gap-1.5">
                             {(["Included", "Missing", "Unclear"] as ItemStatus[]).map((s) => (
                               <button
                                 key={s}
                                 type="button"
-                                onClick={() => onItemStatusChange(item.id, data.status === s ? ("Included" as ItemStatus) : s)}
+                                onClick={() => onItemStatusChange(item.id, data.status === s ? undefined : s)}
                                 className={`text-xs px-2 py-0.5 rounded border transition-colors ${
                                   data.status === s
                                     ? s === "Included"
@@ -233,11 +238,16 @@ function SupplierFormSection({
     onDraftsChange(next);
   };
 
-  const updateStatus = (sIdx: number, itemId: string, status: ItemStatus) => {
+  const updateStatus = (sIdx: number, itemId: string, status: ItemStatus | undefined) => {
     const next = [...drafts];
+    const currentItem = next[sIdx].items[itemId] || {};
+    // Missing + value cannot coexist — clear value when status is Missing
+    const updatedItem = status === "Missing"
+      ? { ...currentItem, status, value: undefined }
+      : { ...currentItem, status };
     next[sIdx] = {
       ...next[sIdx],
-      items: { ...next[sIdx].items, [itemId]: { ...next[sIdx].items[itemId], status } },
+      items: { ...next[sIdx].items, [itemId]: updatedItem },
     };
     onDraftsChange(next);
   };
@@ -253,9 +263,8 @@ function SupplierFormSection({
 
   const addSupplier = () => {
     if (drafts.length >= 3) return;
-    const id = nextSupplierId();
-    const letters = ["A", "B", "C", "D"];
-    onDraftsChange([...drafts, createEmptyDraft(id, `Supplier ${letters[drafts.length]}`)]);
+    const letter = nextSupplierLetter(drafts.length);
+    onDraftsChange([...drafts, createEmptyDraft(`supplier-${letter.toLowerCase()}`, `Supplier ${letter}`)]);
   };
 
   const removeSupplier = (index: number) => {
@@ -263,6 +272,13 @@ function SupplierFormSection({
     onDraftsChange(drafts.filter((_, i) => i !== index));
   };
 
+  // Name validation
+  const nameErrors = drafts.map((d, i) => {
+    if (!d.name.trim()) return "Name is required";
+    if (drafts.some((o, j) => j !== i && o.name.trim().toLowerCase() === d.name.trim().toLowerCase()))
+      return "Name must be unique";
+    return undefined;
+  });
   return (
     <section className="print-hidden">
       <h2 className="text-lg font-semibold text-foreground mb-4">Enter Your Quotations</h2>
@@ -271,7 +287,7 @@ function SupplierFormSection({
           <SupplierCard
             key={draft.id}
             draft={draft}
-
+            nameError={nameErrors[i]}
             total={drafts.length}
             openSections={openSections}
             onToggleSection={toggleSection}
@@ -314,6 +330,10 @@ export default function QuoteComparator() {
   };
 
   const handleCompare = () => {
+    const trimmed = drafts.map((d) => d.name.trim());
+    if (trimmed.some((n) => !n)) return;
+    const lower = trimmed.map((n) => n.toLowerCase());
+    if (new Set(lower).size !== lower.length) return;
     const suppliers = convertDraftToSuppliers(drafts);
     const r = compareSuppliers(suppliers);
     setResult(r);
@@ -328,6 +348,13 @@ export default function QuoteComparator() {
 
   const handlePrint = () => window.print();
 
+  const hasNameErrors = (() => {
+    const trimmed = drafts.map((d) => d.name.trim());
+    if (trimmed.some((n) => !n)) return true;
+    const lower = trimmed.map((n) => n.toLowerCase());
+    return new Set(lower).size !== lower.length;
+  })();
+
   return (
     <div className="space-y-8">
       {/* Input Form */}
@@ -336,7 +363,7 @@ export default function QuoteComparator() {
           <SupplierFormSection drafts={drafts} onDraftsChange={setDrafts} />
 
           <div className="flex flex-wrap gap-3 print-hidden">
-            <button type="button" onClick={handleCompare} className="btn btn-primary">
+            <button type="button" onClick={handleCompare} disabled={hasNameErrors} className="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
               Compare Quotations
             </button>
             <button type="button" onClick={handleDemo} className="btn btn-secondary">

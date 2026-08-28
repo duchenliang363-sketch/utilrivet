@@ -230,9 +230,12 @@ export function convertDraftToSuppliers(drafts: DraftSupplier[]): Supplier[] {
         } else {
           // Value-type: include if status set or value entered
           if (hasStatus || hasValue) {
+            const finalStatus = data.status || (hasValue ? "Included" : "Missing");
+            // Missing + value cannot coexist — strip value when status is Missing
+            const finalValue = finalStatus === "Missing" ? undefined : (hasValue ? data.value!.trim() : undefined);
             items[item.id] = {
-              status: data.status || (hasValue ? "Included" : "Missing"),
-              value: hasValue ? data.value!.trim() : undefined,
+              status: finalStatus,
+              value: finalValue,
             };
           }
         }

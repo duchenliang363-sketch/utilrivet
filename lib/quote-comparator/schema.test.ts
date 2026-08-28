@@ -234,3 +234,16 @@ test("16. convertDraftToSuppliers — value with explicit Missing status", () =>
   const result = convertDraftToSuppliers([draft]);
   assert.equal(result[0].items["total-price"].status, "Missing");
 });
+
+test("17. convertDraftToSuppliers — Missing status strips value", () => {
+  const draft: DraftSupplier = {
+    id: "a",
+    name: "A",
+    items: {
+      "total-price": { status: "Missing", value: "$50,000" },
+    },
+  };
+  const result = convertDraftToSuppliers([draft]);
+  assert.equal(result[0].items["total-price"].status, "Missing");
+  assert.equal(result[0].items["total-price"].value, undefined);
+});
