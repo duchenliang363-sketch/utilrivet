@@ -335,7 +335,7 @@ export default function SupplierQuoteCompletenessChecker() {
   const hasResults = quotes.some((q) => q.result);
   const checkedQuotes = quotes.filter((q) => q.result);
   const comparisonSummary = checkedQuotes.length >= 2
-    ? compareQuotes(checkedQuotes.map((q) => ({ name: q.name, result: q.result! })))
+    ? compareQuotes(checkedQuotes.map((q) => ({ id: q.id, name: q.name, result: q.result! })))
     : null;
   const allQuestions = hasResults
     ? quotes.flatMap((q) => (q.result ? buildQuestions(q.result).map((qq) => ({ supplier: q.name, question: qq })) : []))

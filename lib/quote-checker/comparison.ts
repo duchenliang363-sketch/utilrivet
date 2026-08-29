@@ -6,7 +6,8 @@ import type { QuoteCheckResult, FieldCheck } from "./engine.ts";
 // ─── Types ─────────────────────────────────────────────────
 
 export interface SupplierQuote {
-  name: string;
+  id: string; // stable unique id — comparison uses index/id, never name (names may collide)
+  name: string; // display-only
   result: QuoteCheckResult;
 }
 
@@ -32,7 +33,7 @@ export interface ComparisonSummary {
     lower: string; // supplier name
     amount: number; // absolute difference
     percentage: number; // percentage difference
-    rawValues: number[]; // raw total prices
+    rawValues: (number | null)[]; // raw total prices, index-aligned with input quotes (null = missing/unparseable)
   };
 }
 
@@ -48,6 +49,14 @@ function extractNumber(value: string | undefined): number | null {
   const match = cleaned.match(/[\d,]+\.?\d*/);
   if (!match) return null;
   return parseFloat(match[0].replace(/,/g, ""));
+}
+
+function getTotalPrices(quotes: SupplierQuote[]): (number | null)[] {
+  return quotes.map((q) => extractNumber(getFieldValue(q.result.checks, "total-price")?.value));
+}
+
+function getCurrencyValues(quotes: SupplierQuote[]): (string | null)[] {
+  return quotes.map((q) => getFieldValue(q.result.checks, "currency")?.value || null);
 }
 
 // ─── Comparability Assessment ──────────────────────────────
@@ -105,11 +114,7 @@ function assessComparability(quotes: SupplierQuote[]): ComparabilityAssessment {
   }
 
   // Check currency differences (after normalization, RMB=CNY)
-  const currencies = quotes.map((q) => {
-    const field = getFieldValue(q.result.checks, "currency");
-    return field?.value || null;
-  });
-
+  const currencies = getCurrencyValues(quotes);
   const uniqueCurrencies = new Set(currencies.filter((c) => c !== null));
   if (uniqueCurrencies.size > 1) {
     reasons.push(`Currency differs (${[...uniqueCurrencies].join(" vs ")})`);
@@ -132,10 +137,7 @@ function assessComparability(quotes: SupplierQuote[]): ComparabilityAssessment {
 // ─── Price Difference Calculation ──────────────────────────
 
 function calculatePriceDifference(quotes: SupplierQuote[]): ComparisonSummary["priceDifference"] | undefined {
-  const prices = quotes.map((q) => {
-    const field = getFieldValue(q.result.checks, "total-price");
-    return extractNumber(field?.value);
-  });
+  const prices = getTotalPrices(quotes);
 
   const validPrices = prices.filter((p) => p !== null) as number[];
   if (validPrices.length < 2) return undefined;
@@ -148,7 +150,9 @@ function calculatePriceDifference(quotes: SupplierQuote[]): ComparisonSummary["p
     lower: quotes[lowerIdx].name,
     amount: maxPrice - minPrice,
     percentage: minPrice > 0 ? Math.round(((maxPrice - minPrice) / minPrice) * 1000) / 10 : 0,
-    rawValues: validPrices,
+    // Keep nulls: the UI maps rawValues by quote index. Filtering here would
+    // shift prices onto the wrong supplier.
+    rawValues: prices,
   };
 }
 
@@ -169,7 +173,7 @@ const COMPARISON_FIELDS = [
   { id: "installation", label: "Installation" },
 ];
 
-function buildComparisonRows(quotes: SupplierQuote[]): ComparisonRow[] {
+function buildComparisonRows(quotes: SupplierQuote[], currencyConflict: boolean): ComparisonRow[] {
   return COMPARISON_FIELDS.map(({ id, label }) => {
     const values = quotes.map((q) => {
       const field = getFieldValue(q.result.checks, id);
@@ -188,7 +192,11 @@ function buildComparisonRows(quotes: SupplierQuote[]): ComparisonRow[] {
     let warning = false;
 
     if (uniqueValues.size > 1 && presentValues.length >= 2) {
-      if (id === "total-price" || id === "unit-price") {
+      if ((id === "total-price" || id === "unit-price") && currencyConflict) {
+        // Different currencies: a numeric "lower by X" would be misleading.
+        difference = "Prices in different currencies — not comparable";
+        warning = true;
+      } else if (id === "total-price" || id === "unit-price") {
         const nums = values.map((v) => extractNumber(v ?? undefined));
         const validNums = nums.filter((n) => n !== null) as number[];
         if (validNums.length >= 2) {
@@ -225,15 +233,26 @@ function buildComparisonRows(quotes: SupplierQuote[]): ComparisonRow[] {
 function generateConclusion(
   quotes: SupplierQuote[],
   assessment: ComparabilityAssessment,
-  priceDiff: ComparisonSummary["priceDifference"]
+  priceDiff: ComparisonSummary["priceDifference"],
+  currencyConflict: boolean
 ): string {
   if (!priceDiff) {
+    if (currencyConflict) {
+      return "Prices are in different currencies and cannot be directly compared without exchange rates.";
+    }
     return "Unable to compare prices — total price not found in one or more quotes.";
   }
 
+  if (priceDiff.amount === 0) {
+    return "All quotes have the same total price.";
+  }
+
   const lowerSupplier = priceDiff.lower;
-  const otherQuotes = quotes.filter((q) => q.name !== lowerSupplier);
-  const higherSupplier = otherQuotes.length > 0 ? otherQuotes[0].name : "the other supplier";
+  // Highest price must come from the actual values, never array position —
+  // quotes are ordered by upload order, not by price.
+  const prices = getTotalPrices(quotes);
+  const maxPrice = Math.max(...prices.filter((p): p is number => p !== null));
+  const higherSupplier = quotes[prices.indexOf(maxPrice)]?.name ?? "the other supplier";
   const amountStr = priceDiff.amount.toLocaleString(undefined, { maximumFractionDigits: 2 });
   const pctStr = priceDiff.percentage.toFixed(1);
 
@@ -251,10 +270,16 @@ function generateConclusion(
 // ─── Main Export ───────────────────────────────────────────
 
 export function compareQuotes(quotes: SupplierQuote[]): ComparisonSummary {
-  const rows = buildComparisonRows(quotes);
+  const currencies = getCurrencyValues(quotes);
+  const uniqueCurrencies = new Set(currencies.filter((c) => c !== null));
+  const currencyConflict = uniqueCurrencies.size > 1;
+
+  const rows = buildComparisonRows(quotes, currencyConflict);
   const assessment = assessComparability(quotes);
-  const priceDifference = calculatePriceDifference(quotes);
-  const conclusion = generateConclusion(quotes, assessment, priceDifference);
+  // Never compute a numeric price difference across currencies —
+  // without exchange rates any "lower by X" would be misleading.
+  const priceDifference = currencyConflict ? undefined : calculatePriceDifference(quotes);
+  const conclusion = generateConclusion(quotes, assessment, priceDifference, currencyConflict);
 
   return { rows, assessment, conclusion, priceDifference };
 }

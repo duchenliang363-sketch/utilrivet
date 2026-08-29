@@ -3,8 +3,9 @@ import assert from "node:assert/strict";
 import { compareQuotes, type SupplierQuote } from "./comparison.ts";
 import { checkQuote } from "./engine.ts";
 
+let quoteSeq = 0;
 function makeQuote(name: string, text: string): SupplierQuote {
-  return { name, result: checkQuote(text) };
+  return { id: `quote-${++quoteSeq}`, name, result: checkQuote(text) };
 }
 
 describe("compareQuotes", () => {
@@ -93,5 +94,75 @@ describe("compareQuotes", () => {
     const summary = compareQuotes([a, b]);
     assert.equal(summary.priceDifference, undefined);
     assert.ok(summary.conclusion.includes("Unable"));
+  });
+
+  it("11. rawValues stay index-aligned when a quote lacks a total price", () => {
+    const a = makeQuote("Supplier A", "Total Price: 100\nCurrency: CNY");
+    const b = makeQuote("Supplier B", "Currency: CNY"); // no total price
+    const c = makeQuote("Supplier C", "Total Price: 200\nCurrency: CNY");
+    const summary = compareQuotes([a, b, c]);
+
+    assert.ok(summary.priceDifference);
+    // Null must sit at B's position — prices must never shift onto the wrong supplier.
+    assert.deepEqual(summary.priceDifference.rawValues, [100, null, 200]);
+    assert.equal(summary.priceDifference.lower, "Supplier A");
+    assert.equal(summary.priceDifference.amount, 100);
+  });
+
+  it("12. Conclusion uses the actual highest price for 3+ quotes", () => {
+    const a = makeQuote("Supplier A", "Total Price: 100\nCurrency: CNY");
+    const b = makeQuote("Supplier B", "Total Price: 150\nCurrency: CNY");
+    const c = makeQuote("Supplier C", "Total Price: 90\nCurrency: CNY");
+    const summary = compareQuotes([a, b, c]);
+
+    assert.equal(summary.priceDifference!.lower, "Supplier C");
+    assert.equal(summary.priceDifference!.amount, 60);
+    // Highest is B (150) — not the first other quote (A).
+    assert.ok(summary.conclusion.includes("than Supplier B"));
+    assert.ok(summary.conclusion.includes("60 less"));
+  });
+
+  it("13. Cross-currency quotes produce no numeric price difference", () => {
+    const a = makeQuote("Supplier A", "Total Price: 100\nCurrency: USD");
+    const b = makeQuote("Supplier B", "Total Price: 900\nCurrency: CNY");
+    const summary = compareQuotes([a, b]);
+
+    assert.equal(summary.priceDifference, undefined);
+    assert.ok(summary.conclusion.toLowerCase().includes("different currencies"));
+    assert.ok(summary.conclusion.includes("exchange rates"));
+    // The table row note must not carry a misleading numeric diff either.
+    const totalRow = summary.rows.find((r) => r.fieldId === "total-price");
+    assert.ok(totalRow?.warning);
+    assert.ok(!/\d/.test(totalRow?.difference ?? ""), "row note must not contain a numeric diff");
+  });
+
+  it("14. Duplicate supplier names still compare correctly", () => {
+    const a = makeQuote("Supplier X", "Total Price: 120\nCurrency: CNY");
+    const b = makeQuote("Supplier X", "Total Price: 100\nCurrency: CNY");
+    const summary = compareQuotes([a, b]);
+
+    assert.ok(summary.priceDifference);
+    assert.equal(summary.priceDifference.amount, 20);
+    assert.equal(summary.priceDifference.lower, "Supplier X");
+    assert.deepEqual(summary.priceDifference.rawValues, [120, 100]);
+  });
+
+  it("15. Identical total prices produce a same-price conclusion", () => {
+    const a = makeQuote("Supplier A", "Total Price: 100\nCurrency: CNY");
+    const b = makeQuote("Supplier B", "Total Price: 100\nCurrency: CNY");
+    const summary = compareQuotes([a, b]);
+
+    assert.ok(summary.priceDifference);
+    assert.equal(summary.priceDifference.amount, 0);
+    assert.ok(summary.conclusion.includes("same total price"));
+  });
+
+  it("16. A missing currency does not block comparison when the rest match", () => {
+    const a = makeQuote("Supplier A", "Total Price: 100\nCurrency: USD");
+    const b = makeQuote("Supplier B", "Total Price: 90");
+    const summary = compareQuotes([a, b]);
+
+    assert.ok(summary.priceDifference);
+    assert.deepEqual(summary.priceDifference.rawValues, [100, 90]);
   });
 });

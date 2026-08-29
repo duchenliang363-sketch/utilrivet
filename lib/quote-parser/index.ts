@@ -145,18 +145,28 @@ async function parseXLSX(file: File): Promise<ParseResult> {
         const cellVal = String(row[j] ?? "").trim();
         if (!cellVal) continue;
         const colName = headers[j] || `Column${j + 1}`;
-        // Skip if column header itself is empty or looks like a row number
+        // Skip if column header is empty or looks like a row number
         if (!colName || /^\d+$/.test(colName)) {
           textLines.push(cellVal);
+        } else if (cellVal.toLowerCase() === colName.toLowerCase()) {
+          // Cell value equals its column header — this is a label cell,
+          // not a data value. Skip it; the actual value is in another column.
+          continue;
         } else {
           textLines.push(`${colName}: ${cellVal}`);
         }
         hasOutput = true;
       }
       if (!hasOutput && nonEmpty.length > 0) {
-        // Fallback: output cells without headers
-        for (const cell of nonEmpty) {
-          textLines.push(String(cell ?? "").trim());
+        // Fallback: output cells without headers. A cell whose value equals
+        // its column header is a label cell (e.g. a repeated header row) —
+        // skip it so bare labels never reach the engine.
+        for (let j = 0; j < row.length; j++) {
+          const cellVal = String(row[j] ?? "").trim();
+          if (!cellVal) continue;
+          const colName = headers[j] || `Column${j + 1}`;
+          if (cellVal.toLowerCase() === colName.toLowerCase()) continue;
+          textLines.push(cellVal);
         }
       }
     }
