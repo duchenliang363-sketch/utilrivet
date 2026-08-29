@@ -61,14 +61,15 @@ export interface TrapEntry {
 export interface TrapComputed {
   entry: TrapEntry;
   pressurePsi: number;
-  steamLossLbHr: number;
+  steamLossLbHr: number; // raw entered value, retained for the survey record
+  recoverableSteamLossLbHr: number; // only Leaking + Failed Open
   annualSteamLossLb: number; // condition-counted (Good / Failed Closed / Unknown = 0)
   annualLossCost: number; // condition-counted
   rawAnnualLossCost: number; // entered loss valued at annual hours (reporting only)
   annualSavings: number; // only Leaking + Failed Open
   hasRepairCost: boolean;
   paybackMonths: number | null; // null when no repair cost or no savings
-  priority: Priority;
+  priority: Priority | null; // null for Good and Repaired traps
 }
 
 export interface SurveySummary {
@@ -79,12 +80,12 @@ export interface SurveySummary {
   failedClosedCount: number;
   unknownCount: number;
   failureRate: number; // (Leaking + Failed Open + Failed Closed) / total
-  totalSteamLossLbHr: number; // all traps, as entered
-  totalAnnualSteamLossLb: number; // all traps, as entered
-  originalAnnualLoss: number; // all problem traps (Leaking + Failed Open + Failed Closed)
-  remainingOpenLoss: number; // problem traps, status != Repaired
+  totalSteamLossLbHr: number; // original recoverable loss, all statuses
+  totalAnnualSteamLossLb: number; // original recoverable annual loss, all statuses
+  originalAnnualLoss: number; // recoverable annual cost, all statuses
+  remainingOpenLoss: number; // recoverable annual cost, status != Repaired
   potentialAnnualSavings: number; // Leaking + Failed Open, status != Repaired
-  totalRepairCost: number; // traps with a repair cost
+  remainingRepairCost: number; // non-Good, status != Repaired, with repair cost
   overallPaybackMonths: number | null; // Open/Planned problem traps with valid savings
   openCount: number;
   plannedCount: number;
@@ -94,7 +95,8 @@ export interface SurveySummary {
 export interface SurveyReport {
   traps: TrapComputed[];
   summary: SurveySummary;
-  priorities: TrapComputed[]; // excludes Good; HIGH → MEDIUM → LOW → Unrated → Inspection Required
+  priorities: TrapComputed[]; // excludes Good and Repaired
+  completed: TrapComputed[];
 }
 
 // ─── Validation ───────────────────────────────────────────
@@ -132,7 +134,12 @@ export function validateSurvey(s: SurveySettings, entries: TrapEntry[]): string[
 
 // ─── Per-Trap Computation ─────────────────────────────────
 
-function priorityFor(paybackMonths: number | null, condition: TrapCondition): Priority {
+function priorityFor(
+  paybackMonths: number | null,
+  condition: TrapCondition,
+  status: RepairStatus,
+): Priority | null {
+  if (status === "Repaired" || condition === "Good") return null;
   if (condition === "Failed Closed" || condition === "Unknown") return "Inspection Required";
   if (paybackMonths === null) return "Unrated";
   if (paybackMonths <= 3) return "HIGH";
@@ -158,25 +165,29 @@ export function computeTrap(entry: TrapEntry, s: SurveySettings): TrapComputed {
 
   // Condition logic: only Leaking / Failed Open generate recoverable loss.
   const countsLoss = entry.condition === "Leaking" || entry.condition === "Failed Open";
+  const recoverableSteamLossLbHr = countsLoss ? steamLossLbHr : 0;
   const annualSteamLossLb = countsLoss ? annualLb : 0;
   const annualLossCost = countsLoss ? annualCost : 0;
   const annualSavings = annualLossCost;
 
   const hasRepairCost = entry.repairCost !== null && entry.repairCost > 0;
   const paybackMonths =
-    hasRepairCost && annualSavings > 0 ? ((entry.repairCost as number) / annualSavings) * 12 : null;
+    entry.status !== "Repaired" && hasRepairCost && annualSavings > 0
+      ? ((entry.repairCost as number) / annualSavings) * 12
+      : null;
 
   return {
     entry,
     pressurePsi,
     steamLossLbHr,
+    recoverableSteamLossLbHr,
     annualSteamLossLb,
     annualLossCost,
     rawAnnualLossCost: annualCost,
     annualSavings,
     hasRepairCost,
     paybackMonths,
-    priority: priorityFor(paybackMonths, entry.condition),
+    priority: priorityFor(paybackMonths, entry.condition, entry.status),
   };
 }
 
@@ -190,13 +201,12 @@ const PRIORITY_ORDER: Record<Priority, number> = {
   "Inspection Required": 4,
 };
 
-function isProblem(condition: TrapCondition): boolean {
-  return condition === "Leaking" || condition === "Failed Open" || condition === "Failed Closed";
-}
-
 export function buildSurveyReport(s: SurveySettings, entries: TrapEntry[]): SurveyReport {
   const traps = entries.map((e) => computeTrap(e, s));
-  const hours = isBad(s.hoursPerDay) || isBad(s.daysPerYear) ? 0 : s.hoursPerDay * s.daysPerYear;
+  const remainingActions = traps.filter(
+    (t): t is TrapComputed & { priority: Priority } => t.priority !== null,
+  );
+  const completed = traps.filter((t) => t.entry.status === "Repaired");
 
   const count = (c: TrapCondition) => traps.filter((t) => t.entry.condition === c).length;
   const leakingCount = count("Leaking");
@@ -206,27 +216,23 @@ export function buildSurveyReport(s: SurveySettings, entries: TrapEntry[]): Surv
   const failureRate =
     traps.length > 0 ? (leakingCount + failedOpenCount + failedClosedCount) / traps.length : 0;
 
-  const totalSteamLossLbHr = traps.reduce((a, t) => a + t.steamLossLbHr, 0);
-  const totalAnnualSteamLossLb = totalSteamLossLbHr * hours;
-
-  const problems = traps.filter((t) => isProblem(t.entry.condition));
-  const originalAnnualLoss = problems.reduce((a, t) => a + t.rawAnnualLossCost, 0);
-  const remainingOpenLoss = problems
+  const totalSteamLossLbHr = traps.reduce((a, t) => a + t.recoverableSteamLossLbHr, 0);
+  const totalAnnualSteamLossLb = traps.reduce((a, t) => a + t.annualSteamLossLb, 0);
+  const originalAnnualLoss = traps.reduce((a, t) => a + t.annualLossCost, 0);
+  const remainingOpenLoss = traps
     .filter((t) => t.entry.status !== "Repaired")
-    .reduce((a, t) => a + t.rawAnnualLossCost, 0);
+    .reduce((a, t) => a + t.annualLossCost, 0);
 
   const potentialAnnualSavings = traps
     .filter((t) => t.entry.status !== "Repaired")
     .reduce((a, t) => a + t.annualSavings, 0);
 
-  const totalRepairCost = traps
+  const remainingRepairCost = remainingActions
     .filter((t) => t.hasRepairCost)
     .reduce((a, t) => a + (t.entry.repairCost || 0), 0);
 
   // Overall payback: Open / Planned problem traps with valid annual savings.
-  const paybackTraps = problems.filter(
-    (t) => t.entry.status !== "Repaired" && t.annualSavings > 0 && t.hasRepairCost,
-  );
+  const paybackTraps = remainingActions.filter((t) => t.annualSavings > 0 && t.hasRepairCost);
   const paybackRepairCost = paybackTraps.reduce((a, t) => a + (t.entry.repairCost || 0), 0);
   const paybackSavings = paybackTraps.reduce((a, t) => a + t.annualSavings, 0);
   const overallPaybackMonths =
@@ -245,7 +251,7 @@ export function buildSurveyReport(s: SurveySettings, entries: TrapEntry[]): Surv
     originalAnnualLoss,
     remainingOpenLoss,
     potentialAnnualSavings,
-    totalRepairCost,
+    remainingRepairCost,
     overallPaybackMonths,
     openCount: traps.filter((t) => t.entry.status === "Open").length,
     plannedCount: traps.filter((t) => t.entry.status === "Planned").length,
@@ -253,14 +259,12 @@ export function buildSurveyReport(s: SurveySettings, entries: TrapEntry[]): Surv
   };
 
   // Repair order: priority first, then highest annual savings. Good traps need no repair.
-  const priorities = traps
-    .filter((t) => t.entry.condition !== "Good")
-    .sort((a, b) => {
-      const p = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
-      return p !== 0 ? p : b.annualSavings - a.annualSavings;
-    });
+  const priorities = remainingActions.sort((a, b) => {
+    const p = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+    return p !== 0 ? p : b.annualSavings - a.annualSavings;
+  });
 
-  return { traps, summary, priorities };
+  return { traps, summary, priorities, completed };
 }
 
 // ─── Copy Summary Text ────────────────────────────────────
@@ -276,7 +280,7 @@ function formatLb(n: number): string {
 }
 
 export function buildSummaryText(s: SurveySettings, report: SurveyReport): string {
-  const { summary, priorities } = report;
+  const { summary, priorities, completed } = report;
   const lines: string[] = ["Steam Trap Survey Summary", ""];
 
   if (s.projectName.trim()) lines.push(`Project: ${s.projectName.trim()}`);
@@ -293,17 +297,19 @@ export function buildSummaryText(s: SurveySettings, report: SurveyReport): strin
   lines.push(`Unknown: ${summary.unknownCount}`);
   lines.push(`Failure / Issue Rate: ${(summary.failureRate * 100).toFixed(1)}%`);
   lines.push("");
-  lines.push(`Estimated Annual Steam Loss: ${formatLb(summary.totalAnnualSteamLossLb)}`);
-  lines.push(`Estimated Annual Cost Loss: ${formatUSD(summary.originalAnnualLoss)}`);
-  lines.push(`Remaining Open Loss: ${formatUSD(summary.remainingOpenLoss)}`);
-  lines.push(`Potential Annual Savings: ${formatUSD(summary.potentialAnnualSavings)}`);
-  lines.push(`Estimated Repair Cost: ${formatUSD(summary.totalRepairCost)}`);
+  lines.push(`Original Recoverable Annual Steam Loss: ${formatLb(summary.totalAnnualSteamLossLb)}`);
+  lines.push(`Original Recoverable Annual Cost Loss: ${formatUSD(summary.originalAnnualLoss)}`);
+  lines.push(`Remaining Recoverable Annual Cost Loss: ${formatUSD(summary.remainingOpenLoss)}`);
+  lines.push(`Remaining Potential Savings: ${formatUSD(summary.potentialAnnualSavings)}`);
+  lines.push(`Remaining Repair Cost: ${formatUSD(summary.remainingRepairCost)}`);
   if (summary.overallPaybackMonths !== null) {
-    lines.push(`Overall Payback: ${summary.overallPaybackMonths.toFixed(1)} months`);
+    lines.push(`Overall Remaining Payback: ${summary.overallPaybackMonths.toFixed(1)} months`);
   }
   lines.push("");
   lines.push("Repair Priorities:");
   lines.push("");
+
+  if (priorities.length === 0) lines.push("None — no open repair or inspection issues remain.", "");
 
   priorities.forEach((t) => {
     lines.push(`${t.entry.id} — ${t.entry.location.trim() || "No location"}`);
@@ -317,9 +323,20 @@ export function buildSummaryText(s: SurveySettings, report: SurveyReport): strin
         );
       }
     }
-    lines.push(`Priority: ${t.priority}`);
+    if (t.priority !== null) lines.push(`Priority: ${t.priority}`);
     lines.push("");
   });
+
+  if (completed.length > 0) {
+    lines.push("Completed / Repaired:", "");
+    completed.forEach((t) => {
+      lines.push(`${t.entry.id} — ${t.entry.location.trim() || "No location"}`);
+      lines.push(`Condition: ${t.entry.condition}`);
+      if (t.annualSavings > 0) lines.push(`Closed Potential Savings: ${formatUSD(t.annualSavings)}`);
+      lines.push("");
+    });
+    lines.push("Closed potential savings are original survey estimates, not verified savings.");
+  }
 
   return lines.join("\n").trim();
 }

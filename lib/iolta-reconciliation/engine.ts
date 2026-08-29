@@ -141,11 +141,36 @@ export interface LedgerEntry {
   balance: string; // raw input
 }
 
+export type BookAdjustmentType = "Bank Fee" | "Interest" | "Other Adjustment";
+
+export interface BookAdjustmentInput {
+  type: BookAdjustmentType;
+  amount: string;
+  note: string;
+}
+
+export interface BookAdjustmentRecord {
+  type: BookAdjustmentType;
+  note: string;
+  enteredCents: number;
+  effectCents: number;
+}
+
+export interface ReconciliationIssue {
+  location:
+    | "Bank to adjusted book"
+    | "Adjusted book to client ledgers"
+    | "Both reconciliation boundaries"
+    | "Client ledger exception";
+  recommendedCheck: string;
+}
+
 export interface ReconciliationInput {
   statementEnding: string;
   register: string;
   checks: string[]; // outstanding checks (optional; empty = 0; must be >= 0)
   deposits: string[]; // outstanding deposits (optional; empty = 0; must be >= 0)
+  bookAdjustments?: BookAdjustmentInput[];
   ledgers: LedgerEntry[];
 }
 
@@ -156,9 +181,17 @@ export interface ReconciliationResult {
   checksCents: number;
   depositsCents: number;
   adjustedBankCents: number;
+  bookAdjustments: BookAdjustmentRecord[];
+  bookAdjustmentCents: number;
+  adjustedBookCents: number;
   ledgerTotalCents: number;
   ledgerCount: number; // number of valid client ledger rows
   negativeLedgers: { name: string; cents: number }[];
+  bankBookDifferenceCents: number;
+  bookLedgerDifferenceCents: number;
+  bankLedgerDifferenceCents: number;
+  issues: ReconciliationIssue[];
+  statusLabel: string;
   balanced: boolean; // only meaningful when errors.length === 0
   canGenerate: boolean; // all required inputs present and valid, no blocking errors
 }
@@ -166,7 +199,8 @@ export interface ReconciliationResult {
 /**
  * Run the three-way reconciliation. All money math in integer cents:
  *   Adjusted Bank = Statement Ending − Outstanding Checks + Outstanding Deposits
- *   PASS when Adjusted Bank = Trust Register = Total Client Ledgers.
+ *   Adjusted Book = Trust Register − Bank Fees + Interest + signed Other Adjustments
+ *   PASS when Adjusted Bank = Adjusted Book = Total Client Ledgers.
  *
  * Required: statement ending balance, trust register balance, ≥1 valid ledger.
  * Optional: outstanding checks / deposits (empty rows = 0). Negative checks or
@@ -225,6 +259,47 @@ export function computeReconciliation(input: ReconciliationInput): Reconciliatio
     depositsCents += v;
   });
 
+  // ── Book adjustments: typed, noted audit trail with explicit sign rules ──
+  const bookAdjustments: BookAdjustmentRecord[] = [];
+  let bookAdjustmentCents = 0;
+  (input.bookAdjustments ?? []).forEach((adjustment, i) => {
+    const label = `${adjustment.type} adjustment ${i + 1}`;
+    const amountProvided = adjustment.amount.trim() !== "";
+    const noteProvided = adjustment.note.trim() !== "";
+
+    if (!amountProvided && !noteProvided) return;
+    if (!amountProvided) {
+      errors.push(`${label} requires an amount.`);
+      return;
+    }
+
+    const enteredCents = parseMoneyToCents(adjustment.amount);
+    if (enteredCents === null) {
+      errors.push(`${label} is not a valid amount.`);
+      return;
+    }
+    if (
+      (adjustment.type === "Bank Fee" || adjustment.type === "Interest") &&
+      enteredCents < 0
+    ) {
+      errors.push(`${label} must be 0 or more.`);
+      return;
+    }
+    if (!noteProvided) {
+      errors.push(`${label} requires a short note.`);
+      return;
+    }
+
+    const effectCents = adjustment.type === "Bank Fee" ? -enteredCents : enteredCents;
+    bookAdjustments.push({
+      type: adjustment.type,
+      note: adjustment.note.trim(),
+      enteredCents,
+      effectCents,
+    });
+    bookAdjustmentCents += effectCents;
+  });
+
   // ── Client ledgers: ≥1 valid row required; negatives allowed but warned ──
   let ledgerTotalCents = 0;
   let ledgerCount = 0;
@@ -248,8 +323,45 @@ export function computeReconciliation(input: ReconciliationInput): Reconciliatio
 
   const canGenerate = errors.length === 0;
   const adjustedBankCents = statementCents! - checksCents + depositsCents;
+  const adjustedBookCents = registerCents! + bookAdjustmentCents;
+  const bankBookDifferenceCents = adjustedBankCents - adjustedBookCents;
+  const bookLedgerDifferenceCents = adjustedBookCents - ledgerTotalCents;
+  const bankLedgerDifferenceCents = adjustedBankCents - ledgerTotalCents;
   const balanced =
-    canGenerate && adjustedBankCents === registerCents && registerCents === ledgerTotalCents;
+    canGenerate && bankBookDifferenceCents === 0 && bookLedgerDifferenceCents === 0;
+
+  const issues: ReconciliationIssue[] = [];
+  if (canGenerate && bankBookDifferenceCents !== 0 && bookLedgerDifferenceCents === 0) {
+    issues.push({
+      location: "Bank to adjusted book",
+      recommendedCheck:
+        "Review outstanding items, bank fees or interest not yet posted, and possible missing or duplicate bank/book postings.",
+    });
+  } else if (canGenerate && bankBookDifferenceCents === 0 && bookLedgerDifferenceCents !== 0) {
+    issues.push({
+      location: "Adjusted book to client ledgers",
+      recommendedCheck:
+        "Review omitted client ledgers, client-level postings, and the client ledger addition against the adjusted book balance.",
+    });
+  } else if (canGenerate && bankBookDifferenceCents !== 0 && bookLedgerDifferenceCents !== 0) {
+    issues.push({
+      location: "Both reconciliation boundaries",
+      recommendedCheck:
+        "Complete bank-to-book first, then review book-to-ledgers postings and ledger addition.",
+    });
+  }
+  if (canGenerate && negativeLedgers.length > 0) {
+    issues.push({
+      location: "Client ledger exception",
+      recommendedCheck:
+        "Review negative client ledger balances before signing, even when the three arithmetic totals agree.",
+    });
+  }
+  const statusLabel = !balanced
+    ? "OUT OF BALANCE"
+    : issues.length > 0
+      ? "Arithmetic Balanced — Exception Requires Review"
+      : "BALANCED — all three figures agree to the cent";
 
   return {
     errors,
@@ -258,9 +370,17 @@ export function computeReconciliation(input: ReconciliationInput): Reconciliatio
     checksCents,
     depositsCents,
     adjustedBankCents,
+    bookAdjustments,
+    bookAdjustmentCents,
+    adjustedBookCents,
     ledgerTotalCents,
     ledgerCount,
     negativeLedgers,
+    bankBookDifferenceCents,
+    bookLedgerDifferenceCents,
+    bankLedgerDifferenceCents,
+    issues,
+    statusLabel,
     balanced,
     canGenerate,
   };

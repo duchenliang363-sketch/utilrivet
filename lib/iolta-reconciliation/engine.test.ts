@@ -3,6 +3,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import {
   parseMoneyToCents,
   formatCents,
@@ -90,15 +91,24 @@ test("parseClientCsv: accounting negatives and one-column rows", () => {
 
 // ─── P0-1: required fields — no BALANCED false positive ────────────────────
 
-function base(overrides: Partial<ReconciliationInput>): ReconciliationInput {
+type AdjustmentInput = {
+  type: "Bank Fee" | "Interest" | "Other Adjustment";
+  amount: string;
+  note: string;
+};
+
+type P03Input = ReconciliationInput & { bookAdjustments: AdjustmentInput[] };
+
+function base(overrides: Partial<P03Input>): P03Input {
   return {
     statementEnding: "1000.00",
     register: "1000.00",
     checks: [],
     deposits: [],
+    bookAdjustments: [],
     ledgers: [{ name: "Client A", balance: "1000.00" }],
     ...overrides,
-  };
+  } as P03Input;
 }
 
 test("P0-1: completely empty input must NOT produce BALANCED", () => {
@@ -232,4 +242,144 @@ test("invalid filled ledger balance blocks with a clear message", () => {
   const r = computeReconciliation(base({ ledgers: [{ name: "A", balance: "oops" }] }));
   assert.equal(r.canGenerate, false);
   assert.ok(r.errors.some((e) => e.includes("not a valid amount")));
+});
+
+// ─── P0-3: adjusted book balance and non-inferential review paths ──────────
+
+test("P0-3: bank fees subtract and interest credits add to the raw book balance", () => {
+  const r = computeReconciliation(
+    base({
+      statementEnding: "985.00",
+      register: "1000.00",
+      bookAdjustments: [
+        { type: "Bank Fee", amount: "25.00", note: "Monthly service charge" },
+        { type: "Interest", amount: "10.00", note: "Statement interest credit" },
+      ],
+      ledgers: [{ name: "Client A", balance: "985.00" }],
+    })
+  );
+
+  assert.equal(r.bookAdjustmentCents, -1500);
+  assert.equal(r.adjustedBookCents, 98500);
+  assert.equal(r.bankBookDifferenceCents, 0);
+  assert.equal(r.bookLedgerDifferenceCents, 0);
+  assert.equal(r.bankLedgerDifferenceCents, 0);
+  assert.equal(r.balanced, true);
+  assert.equal(r.statusLabel, "BALANCED — all three figures agree to the cent");
+});
+
+test("P0-3: Other Adjustment uses a signed amount and remains in the audit trail", () => {
+  const r = computeReconciliation(
+    base({
+      statementEnding: "990.00",
+      register: "1000.00",
+      bookAdjustments: [
+        { type: "Other Adjustment", amount: "(10.00)", note: "Correct duplicate receipt" },
+      ],
+      ledgers: [{ name: "Client A", balance: "990.00" }],
+    })
+  );
+
+  assert.equal(r.adjustedBookCents, 99000);
+  assert.deepEqual(r.bookAdjustments, [
+    {
+      type: "Other Adjustment",
+      note: "Correct duplicate receipt",
+      enteredCents: -1000,
+      effectCents: -1000,
+    },
+  ]);
+  assert.equal(r.balanced, true);
+});
+
+test("P0-3: malformed adjustments, unsigned fee reversal, and missing notes block output", () => {
+  const invalid = computeReconciliation(
+    base({
+      bookAdjustments: [
+        { type: "Bank Fee", amount: "-25.00", note: "Invalid reversal" },
+        { type: "Interest", amount: "abc", note: "Bad amount" },
+        { type: "Other Adjustment", amount: "10.00", note: "" },
+      ],
+    })
+  );
+
+  assert.equal(invalid.canGenerate, false);
+  assert.equal(invalid.balanced, false);
+  assert.ok(invalid.errors.some((e) => e.includes("Bank Fee") && e.includes("0 or more")));
+  assert.ok(invalid.errors.some((e) => e.includes("Interest") && e.includes("valid amount")));
+  assert.ok(invalid.errors.some((e) => e.includes("Other Adjustment") && e.includes("note")));
+});
+
+test("P0-3: bank-to-book mismatch recommends checks without claiming a cause", () => {
+  const r = computeReconciliation(
+    base({
+      statementEnding: "1100.00",
+      register: "1000.00",
+      ledgers: [{ name: "Client A", balance: "1000.00" }],
+    })
+  );
+
+  assert.equal(r.bankBookDifferenceCents, 10000);
+  assert.equal(r.bookLedgerDifferenceCents, 0);
+  assert.equal(r.issues[0].location, "Bank to adjusted book");
+  assert.match(r.issues[0].recommendedCheck, /outstanding items/i);
+  assert.match(r.issues[0].recommendedCheck, /missing or duplicate/i);
+  assert.doesNotMatch(r.issues[0].recommendedCheck, /caused by/i);
+});
+
+test("P0-3: book-to-ledgers mismatch and dual mismatch get distinct review paths", () => {
+  const bookLedger = computeReconciliation(
+    base({ ledgers: [{ name: "Client A", balance: "975.00" }] })
+  );
+  assert.equal(bookLedger.bankBookDifferenceCents, 0);
+  assert.equal(bookLedger.bookLedgerDifferenceCents, 2500);
+  assert.equal(bookLedger.issues[0].location, "Adjusted book to client ledgers");
+  assert.match(bookLedger.issues[0].recommendedCheck, /client ledger/i);
+
+  const both = computeReconciliation(
+    base({
+      statementEnding: "1100.00",
+      register: "1000.00",
+      ledgers: [{ name: "Client A", balance: "900.00" }],
+    })
+  );
+  assert.equal(both.issues[0].location, "Both reconciliation boundaries");
+  assert.match(both.issues[0].recommendedCheck, /bank-to-book first/i);
+  assert.match(both.issues[0].recommendedCheck, /book-to-ledgers/i);
+});
+
+test("P0-3: a negative client ledger remains an unresolved exception when arithmetic balances", () => {
+  const r = computeReconciliation(
+    base({
+      statementEnding: "900.00",
+      register: "900.00",
+      ledgers: [
+        { name: "Client A", balance: "1000.00" },
+        { name: "Client B", balance: "(100.00)" },
+      ],
+    })
+  );
+
+  assert.equal(r.balanced, true);
+  assert.equal(r.statusLabel, "Arithmetic Balanced — Exception Requires Review");
+  assert.equal(r.issues.length, 1);
+  assert.equal(r.issues[0].location, "Client ledger exception");
+  assert.match(r.issues[0].recommendedCheck, /review negative client ledger/i);
+});
+
+test("P0-3 addendum: screen and print share the truthful status and adjustment boundary copy", () => {
+  const component = fs.readFileSync(
+    new URL("../../components/tools/IoltaThreeWayReconciliation.tsx", import.meta.url),
+    "utf8"
+  );
+
+  assert.ok(
+    (component.match(/result\.statusLabel/g) ?? []).length >= 2,
+    "screen and print must both render the engine status label"
+  );
+  assert.match(component, /book-side adjustments you have already identified/i);
+  assert.match(
+    component,
+    /does not\s+determine whether an adjustment is required or permitted/i
+  );
 });

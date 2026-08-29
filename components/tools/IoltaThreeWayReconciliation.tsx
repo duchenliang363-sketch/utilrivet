@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import SectionCard from "@/components/SectionCard";
 import {
+  type BookAdjustmentType,
   computeReconciliation,
   formatCents,
   parseClientCsv,
@@ -18,6 +19,13 @@ interface LedgerRow {
   id: number;
   name: string;
   value: string;
+}
+
+interface AdjustmentRow {
+  id: number;
+  type: BookAdjustmentType;
+  amount: string;
+  note: string;
 }
 
 interface CsvMsg {
@@ -38,6 +46,7 @@ export default function IoltaThreeWayReconciliation() {
   const [reg, setReg] = useState("");
   const [checks, setChecks] = useState<AmountRow[]>([]);
   const [deps, setDeps] = useState<AmountRow[]>([]);
+  const [adjustments, setAdjustments] = useState<AdjustmentRow[]>([]);
   const [ledgers, setLedgers] = useState<LedgerRow[]>([]);
   const [csvMsg, setCsvMsg] = useState<CsvMsg | null>(null);
   const [hasRun, setHasRun] = useState(false);
@@ -78,9 +87,10 @@ export default function IoltaThreeWayReconciliation() {
       register: reg,
       checks: checks.map((c) => c.value),
       deposits: deps.map((d) => d.value),
+      bookAdjustments: adjustments.map(({ type, amount, note }) => ({ type, amount, note })),
       ledgers: ledgers.map((l) => ({ name: l.name, balance: l.value })),
     });
-  }, [hasRun, stmt, reg, checks, deps, ledgers]);
+  }, [hasRun, stmt, reg, checks, deps, adjustments, ledgers]);
 
   // Per-field error flags (drives red borders + short inline messages)
   const stmtError = useMemo(() => {
@@ -113,12 +123,26 @@ export default function IoltaThreeWayReconciliation() {
     if (parseMoneyToCents(value) === null) return "Invalid amount.";
     return null;
   };
+  const adjustmentRowError = (row: AdjustmentRow): string | null => {
+    if (!hasRun || !result) return null;
+    if (row.amount.trim() === "" && row.note.trim() === "") return null;
+    if (row.amount.trim() === "") return "Enter an amount.";
+    const amount = parseMoneyToCents(row.amount);
+    if (amount === null) return "Enter a valid amount.";
+    if ((row.type === "Bank Fee" || row.type === "Interest") && amount < 0) {
+      return "Bank Fee and Interest amounts must be 0 or more.";
+    }
+    if (row.note.trim() === "") return "Add a short note for the reconciliation record.";
+    return null;
+  };
 
   // ── Handlers ──
   const updateCheck = (id: number, value: string) =>
     setChecks((rows) => rows.map((r) => (r.id === id ? { ...r, value } : r)));
   const updateDep = (id: number, value: string) =>
     setDeps((rows) => rows.map((r) => (r.id === id ? { ...r, value } : r)));
+  const updateAdjustment = (id: number, patch: Partial<AdjustmentRow>) =>
+    setAdjustments((rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   const updateLedger = (id: number, patch: Partial<LedgerRow>) =>
     setLedgers((rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
 
@@ -135,6 +159,7 @@ export default function IoltaThreeWayReconciliation() {
     setReg("");
     setChecks([]);
     setDeps([]);
+    setAdjustments([]);
     setLedgers([]);
     setCsvMsg(null);
     setFirm("");
@@ -303,6 +328,79 @@ export default function IoltaThreeWayReconciliation() {
           />
         </div>
         {regError && <p className="field-help text-red-600">{regError}</p>}
+
+        <div className="mt-5 border-t border-dashed border-border pt-4">
+          <p className="field-label">Book adjustments — optional</p>
+          <p className="field-help">
+            Bank Fee subtracts from the register; Interest adds. Other Adjustment accepts a signed
+            amount: positive adds, negative subtracts. Add a short note for the audit trail. Use
+            this only for book-side adjustments you have already identified; UtilRivet does not
+            determine whether an adjustment is required or permitted under any jurisdiction&rsquo;s
+            IOLTA rules.
+          </p>
+
+          {adjustments.map((adjustment) => {
+            const error = adjustmentRowError(adjustment);
+            return (
+              <div key={adjustment.id} className="mt-3 rounded-lg border border-border bg-surface p-3">
+                <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_10rem_minmax(0,1.4fr)_auto] sm:items-start">
+                  <select
+                    value={adjustment.type}
+                    onChange={(e) =>
+                      updateAdjustment(adjustment.id, {
+                        type: e.target.value as BookAdjustmentType,
+                      })
+                    }
+                    className={inputClass}
+                    aria-label="Book adjustment type"
+                  >
+                    <option value="Bank Fee">Bank Fee</option>
+                    <option value="Interest">Interest</option>
+                    <option value="Other Adjustment">Other Adjustment</option>
+                  </select>
+                  {moneyInput(
+                    adjustment.amount,
+                    (amount) => updateAdjustment(adjustment.id, { amount }),
+                    error,
+                  )}
+                  <input
+                    type="text"
+                    value={adjustment.note}
+                    onChange={(e) => updateAdjustment(adjustment.id, { note: e.target.value })}
+                    placeholder="Short note / statement reference"
+                    autoComplete="off"
+                    aria-invalid={error !== null}
+                    className={`${inputClass} ${error ? "border-red-400 bg-red-50" : ""}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setAdjustments((rows) => rows.filter((row) => row.id !== adjustment.id))
+                    }
+                    className="btn btn-danger btn-sm"
+                    aria-label="Remove book adjustment"
+                  >
+                    ✕
+                  </button>
+                </div>
+                {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+              </div>
+            );
+          })}
+
+          <button
+            type="button"
+            onClick={() =>
+              setAdjustments((rows) => [
+                ...rows,
+                { id: newId(), type: "Bank Fee", amount: "", note: "" },
+              ])
+            }
+            className="btn btn-secondary btn-sm mt-3"
+          >
+            + Add book adjustment
+          </button>
+        </div>
       </SectionCard>
 
       {/* ── 3. Client ledgers ── */}
@@ -400,12 +498,14 @@ export default function IoltaThreeWayReconciliation() {
         <SectionCard title="Result" className="print:hidden">
           <span
             className={`inline-block rounded-full px-4 py-1 text-sm font-bold ${
-              result.balanced ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+              !result.balanced
+                ? "bg-red-50 text-red-700"
+                : result.issues.length > 0
+                  ? "bg-amber-50 text-amber-800"
+                  : "bg-green-50 text-green-700"
             }`}
           >
-            {result.balanced
-              ? "BALANCED — all three figures agree to the cent"
-              : "OUT OF BALANCE"}
+            {result.statusLabel}
           </span>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -414,8 +514,11 @@ export default function IoltaThreeWayReconciliation() {
               <p className="mt-1 text-xl font-bold tabular-nums">{formatCents(result.adjustedBankCents)}</p>
             </div>
             <div className="rounded-lg border border-border bg-surface p-3">
-              <p className="text-xs text-muted">Trust register balance</p>
-              <p className="mt-1 text-xl font-bold tabular-nums">{formatCents(result.registerCents)}</p>
+              <p className="text-xs text-muted">Adjusted book balance</p>
+              <p className="mt-1 text-xl font-bold tabular-nums">{formatCents(result.adjustedBookCents)}</p>
+              <p className="mt-1 text-xs text-muted">
+                Raw register {formatCents(result.registerCents)} · adjustments {formatCents(result.bookAdjustmentCents)}
+              </p>
             </div>
             <div className="rounded-lg border border-border bg-surface p-3">
               <p className="text-xs text-muted">Total client ledgers ({result.ledgerCount})</p>
@@ -424,13 +527,32 @@ export default function IoltaThreeWayReconciliation() {
           </div>
 
           <div className="mt-3 space-y-1 text-sm">
-            <p className={result.adjustedBankCents === result.registerCents ? "text-green-700" : "text-red-600"}>
-              Bank − Register: {formatCents(result.adjustedBankCents - result.registerCents)}
+            <p className={result.bankBookDifferenceCents === 0 ? "text-green-700" : "text-red-600"}>
+              Bank − Adjusted Book: {formatCents(result.bankBookDifferenceCents)}
             </p>
-            <p className={result.registerCents === result.ledgerTotalCents ? "text-green-700" : "text-red-600"}>
-              Register − Ledgers: {formatCents(result.registerCents - result.ledgerTotalCents)}
+            <p className={result.bookLedgerDifferenceCents === 0 ? "text-green-700" : "text-red-600"}>
+              Adjusted Book − Ledgers: {formatCents(result.bookLedgerDifferenceCents)}
+            </p>
+            <p className={result.bankLedgerDifferenceCents === 0 ? "text-green-700" : "text-red-600"}>
+              Bank − Ledgers: {formatCents(result.bankLedgerDifferenceCents)}
             </p>
           </div>
+
+          {result.issues.length > 0 && (
+            <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm">
+              <p className="font-semibold text-amber-800">Review path — unresolved issue(s)</p>
+              <ul className="mt-1.5 space-y-2 text-amber-900">
+                {result.issues.map((issue, i) => (
+                  <li key={`${issue.location}-${i}`}>
+                    <b>{issue.location}:</b> {issue.recommendedCheck}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-xs text-amber-800">
+                These checks identify where to review; they do not claim the cause of a difference.
+              </p>
+            </div>
+          )}
 
           {negativeLedgers.length > 0 && (
             <div className="mt-3 rounded-lg border border-red-300 bg-red-50 p-3 text-sm">
@@ -501,8 +623,22 @@ export default function IoltaThreeWayReconciliation() {
                 <th className="border border-gray-500 px-2 py-1 text-right tabular-nums">{formatCents(result.adjustedBankCents)}</th>
               </tr>
               <tr>
-                <th className="border border-gray-500 px-2 py-1 text-left">Trust register balance</th>
-                <th className="border border-gray-500 px-2 py-1 text-right tabular-nums">{formatCents(result.registerCents)}</th>
+                <td className="border border-gray-500 px-2 py-1">Raw trust register balance</td>
+                <td className="border border-gray-500 px-2 py-1 text-right tabular-nums">{formatCents(result.registerCents)}</td>
+              </tr>
+              {result.bookAdjustments.map((adjustment, i) => (
+                <tr key={`${adjustment.type}-${i}`}>
+                  <td className="border border-gray-500 px-2 py-1">
+                    Book adjustment: {adjustment.type} — {adjustment.note}
+                  </td>
+                  <td className="border border-gray-500 px-2 py-1 text-right tabular-nums">
+                    {formatCents(adjustment.effectCents)}
+                  </td>
+                </tr>
+              ))}
+              <tr>
+                <th className="border border-gray-500 px-2 py-1 text-left">Adjusted book balance</th>
+                <th className="border border-gray-500 px-2 py-1 text-right tabular-nums">{formatCents(result.adjustedBookCents)}</th>
               </tr>
               <tr>
                 <th className="border border-gray-500 px-2 py-1 text-left">Total client ledger balances ({result.ledgerCount})</th>
@@ -513,11 +649,27 @@ export default function IoltaThreeWayReconciliation() {
 
           <p className="mt-3 text-sm font-bold">
             {result.balanced
-              ? "Result: BALANCED — adjusted bank balance = trust register = total client ledgers."
-              : `Result: OUT OF BALANCE — differences: Bank − Register ${formatCents(
-                  result.adjustedBankCents - result.registerCents
-                )}; Register − Ledgers ${formatCents(result.registerCents - result.ledgerTotalCents)}.`}
+              ? `Result: ${result.statusLabel} — adjusted bank balance = adjusted book balance = total client ledgers.`
+              : `Result: ${result.statusLabel} — differences: Bank − Adjusted Book ${formatCents(
+                  result.bankBookDifferenceCents
+                )}; Adjusted Book − Ledgers ${formatCents(
+                  result.bookLedgerDifferenceCents
+                )}; Bank − Ledgers ${formatCents(result.bankLedgerDifferenceCents)}.`}
           </p>
+          <div className="mt-2 text-sm">
+            <b>Unresolved issues / recommended checks:</b>
+            {result.issues.length > 0 ? (
+              <ul className="mt-1 list-disc pl-5">
+                {result.issues.map((issue, i) => (
+                  <li key={`${issue.location}-print-${i}`}>
+                    {issue.location}: {issue.recommendedCheck}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <span> None</span>
+            )}
+          </div>
           <p className="mt-1 text-sm">
             <b>Negative client ledger balances:</b>{" "}
             {negativeLedgers.length

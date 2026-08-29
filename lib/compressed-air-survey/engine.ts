@@ -48,10 +48,12 @@ export interface SurveySummary {
   totalLeakPowerKW: number;
   totalAnnualEnergyKWh: number;
   originalAnnualLoss: number;
-  potentialAnnualSavings: number;
+  repairedOriginalAnnualLoss: number;
+  closedPotentialSavings: number;
   remainingOpenLoss: number; // leaks not yet Repaired
-  totalRepairCost: number; // only leaks with a repair cost
-  overallPaybackMonths: number | null;
+  remainingPotentialSavings: number;
+  remainingRepairCost: number; // unrepaired leaks with a repair cost
+  overallRemainingPaybackMonths: number | null;
   openCount: number;
   plannedCount: number;
   repairedCount: number;
@@ -61,6 +63,7 @@ export interface SurveyReport {
   leaks: LeakComputed[];
   summary: SurveySummary;
   priorities: LeakComputed[];
+  completed: LeakComputed[];
 }
 
 // ─── Validation ───────────────────────────────────────────
@@ -146,22 +149,24 @@ const PRIORITY_ORDER: Record<Priority, number> = { HIGH: 0, MEDIUM: 1, LOW: 2, U
 
 export function buildSurveyReport(s: SurveySettings, entries: LeakEntry[]): SurveyReport {
   const leaks = entries.map((e) => computeLeak(e, s));
+  const remaining = leaks.filter((l) => l.entry.status !== "Repaired");
+  const completed = leaks.filter((l) => l.entry.status === "Repaired");
 
   const totalFlowCFM = leaks.reduce((a, l) => a + l.flowCFM, 0);
   const totalLeakPowerKW = leaks.reduce((a, l) => a + l.leakPowerKW, 0);
   const totalAnnualEnergyKWh = leaks.reduce((a, l) => a + l.annualEnergyKWh, 0);
   const originalAnnualLoss = leaks.reduce((a, l) => a + l.annualCost, 0);
-  const potentialAnnualSavings = leaks.reduce((a, l) => a + l.annualSavings, 0);
-  const remainingOpenLoss = leaks
-    .filter((l) => l.entry.status !== "Repaired")
-    .reduce((a, l) => a + l.annualCost, 0);
-  const totalRepairCost = leaks
+  const repairedOriginalAnnualLoss = completed.reduce((a, l) => a + l.annualCost, 0);
+  const closedPotentialSavings = completed.reduce((a, l) => a + l.annualSavings, 0);
+  const remainingOpenLoss = remaining.reduce((a, l) => a + l.annualCost, 0);
+  const remainingPotentialSavings = remaining.reduce((a, l) => a + l.annualSavings, 0);
+  const remainingRepairCost = remaining
     .filter((l) => l.hasRepairCost)
     .reduce((a, l) => a + (l.entry.repairCost || 0), 0);
 
-  const overallPaybackMonths =
-    totalRepairCost > 0 && potentialAnnualSavings > 0
-      ? (totalRepairCost / potentialAnnualSavings) * 12
+  const overallRemainingPaybackMonths =
+    remainingRepairCost > 0 && remainingPotentialSavings > 0
+      ? (remainingRepairCost / remainingPotentialSavings) * 12
       : null;
 
   const summary: SurveySummary = {
@@ -170,22 +175,24 @@ export function buildSurveyReport(s: SurveySettings, entries: LeakEntry[]): Surv
     totalLeakPowerKW,
     totalAnnualEnergyKWh,
     originalAnnualLoss,
-    potentialAnnualSavings,
+    repairedOriginalAnnualLoss,
+    closedPotentialSavings,
     remainingOpenLoss,
-    totalRepairCost,
-    overallPaybackMonths,
+    remainingPotentialSavings,
+    remainingRepairCost,
+    overallRemainingPaybackMonths,
     openCount: leaks.filter((l) => l.entry.status === "Open").length,
     plannedCount: leaks.filter((l) => l.entry.status === "Planned").length,
     repairedCount: leaks.filter((l) => l.entry.status === "Repaired").length,
   };
 
   // Repair order: priority first, then highest savings.
-  const priorities = [...leaks].sort((a, b) => {
+  const priorities = [...remaining].sort((a, b) => {
     const p = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
     return p !== 0 ? p : b.annualSavings - a.annualSavings;
   });
 
-  return { leaks, summary, priorities };
+  return { leaks, summary, priorities, completed };
 }
 
 // ─── Copy Summary Text ────────────────────────────────────
@@ -196,7 +203,7 @@ function formatUSD(n: number): string {
 }
 
 export function buildSummaryText(s: SurveySettings, report: SurveyReport): string {
-  const { summary, priorities } = report;
+  const { summary, priorities, completed } = report;
   const lines: string[] = ["Compressed Air Leak Survey Summary", ""];
 
   if (s.projectName.trim()) lines.push(`Project: ${s.projectName.trim()}`);
@@ -206,16 +213,19 @@ export function buildSummaryText(s: SurveySettings, report: SurveyReport): strin
 
   lines.push(`Total Leaks: ${summary.totalLeaks}`);
   lines.push(`Total Leak Flow: ${summary.totalFlowCFM.toLocaleString("en-US", { maximumFractionDigits: 1 })} CFM`);
-  lines.push(`Estimated Annual Loss: ${formatUSD(summary.originalAnnualLoss)}`);
-  lines.push(`Remaining Open Loss: ${formatUSD(summary.remainingOpenLoss)}`);
-  lines.push(`Potential Annual Savings: ${formatUSD(summary.potentialAnnualSavings)}`);
-  lines.push(`Estimated Repair Cost: ${formatUSD(summary.totalRepairCost)}`);
-  if (summary.overallPaybackMonths !== null) {
-    lines.push(`Overall Payback: ${summary.overallPaybackMonths.toFixed(1)} months`);
+  lines.push(`Original Annual Loss: ${formatUSD(summary.originalAnnualLoss)}`);
+  lines.push(`Closed Potential Savings: ${formatUSD(summary.closedPotentialSavings)}`);
+  lines.push(`Remaining Annual Loss: ${formatUSD(summary.remainingOpenLoss)}`);
+  lines.push(`Remaining Potential Savings: ${formatUSD(summary.remainingPotentialSavings)}`);
+  lines.push(`Remaining Repair Cost: ${formatUSD(summary.remainingRepairCost)}`);
+  if (summary.overallRemainingPaybackMonths !== null) {
+    lines.push(`Overall Remaining Payback: ${summary.overallRemainingPaybackMonths.toFixed(1)} months`);
   }
   lines.push("");
   lines.push("Repair Priorities:");
   lines.push("");
+
+  if (priorities.length === 0) lines.push("None — no Open or Planned leaks remain.", "");
 
   priorities.forEach((l) => {
     lines.push(`${l.entry.id} — ${l.entry.location.trim() || "No location"}`);
@@ -229,6 +239,17 @@ export function buildSummaryText(s: SurveySettings, report: SurveyReport): strin
     lines.push(`Priority: ${l.priority}`);
     lines.push("");
   });
+
+  if (completed.length > 0) {
+    lines.push("Completed / Repaired:", "");
+    completed.forEach((l) => {
+      lines.push(`${l.entry.id} — ${l.entry.location.trim() || "No location"}`);
+      lines.push(`Original Annual Loss: ${formatUSD(l.annualCost)}`);
+      lines.push(`Closed Potential Savings: ${formatUSD(l.annualSavings)}`);
+      lines.push("");
+    });
+    lines.push("Closed potential savings are estimates from the original survey, not verified savings.");
+  }
 
   return lines.join("\n").trim();
 }

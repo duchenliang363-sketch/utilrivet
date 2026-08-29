@@ -468,13 +468,14 @@ export default function CompressedAirLeakSurveyReportBuilder() {
       {leaks.length > 0 && (
         <div ref={summaryRef} className="space-y-6">
           <div className="result-card">
-            <h2 className="result-label">Estimated Annual Loss</h2>
+            <h2 className="result-label">Original Annual Loss</h2>
             <div className="flex items-baseline gap-2">
               <span className="result-number">{formatCurrency(summary.originalAnnualLoss)}</span>
               <span className="text-sm text-muted">/ year</span>
             </div>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
-              <span className="text-muted">Remaining Open Loss: <span className="font-medium text-foreground">{formatCurrency(summary.remainingOpenLoss)}</span></span>
+              <span className="text-muted">Closed Potential Savings: <span className="font-medium text-foreground">{formatCurrency(summary.closedPotentialSavings)}</span></span>
+              <span className="text-muted">Remaining Annual Loss: <span className="font-medium text-foreground">{formatCurrency(summary.remainingOpenLoss)}</span></span>
               <span className="text-muted">Status: <span className="font-medium text-foreground">{summary.openCount} Open · {summary.plannedCount} Planned · {summary.repairedCount} Repaired</span></span>
             </div>
           </div>
@@ -497,17 +498,17 @@ export default function CompressedAirLeakSurveyReportBuilder() {
               <div className="result-tile-value">{formatNumber(summary.totalAnnualEnergyKWh, 0)} kWh</div>
             </div>
             <div className="result-tile">
-              <div className="result-tile-label">Potential Annual Savings</div>
-              <div className="result-tile-value text-green-700">{formatCurrency(summary.potentialAnnualSavings)}</div>
+              <div className="result-tile-label">Remaining Potential Savings</div>
+              <div className="result-tile-value text-green-700">{formatCurrency(summary.remainingPotentialSavings)}</div>
             </div>
             <div className="result-tile">
-              <div className="result-tile-label">Total Estimated Repair Cost</div>
-              <div className="result-tile-value">{formatCurrency(summary.totalRepairCost)}</div>
+              <div className="result-tile-label">Remaining Repair Cost</div>
+              <div className="result-tile-value">{formatCurrency(summary.remainingRepairCost)}</div>
             </div>
-            {summary.overallPaybackMonths !== null && (
+            {summary.overallRemainingPaybackMonths !== null && (
               <div className="result-tile">
-                <div className="result-tile-label">Overall Payback</div>
-                <div className="result-tile-value">{formatPayback(summary.overallPaybackMonths)}</div>
+                <div className="result-tile-label">Overall Remaining Payback</div>
+                <div className="result-tile-value">{formatPayback(summary.overallRemainingPaybackMonths)}</div>
               </div>
             )}
           </div>
@@ -515,28 +516,56 @@ export default function CompressedAirLeakSurveyReportBuilder() {
           {/* Repair Priorities */}
           <SectionCard
             title="Repair Priorities"
-            description="Order: repair priority first, then highest annual savings."
+            description="Open and Planned leaks only. Order: repair priority first, then highest annual savings."
           >
-            <ol className="rounded-xl border border-border bg-background divide-y divide-border">
-              {report.priorities.map((l, i) => (
-                <li key={l.entry.id} className="px-4 py-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs font-semibold text-muted shrink-0">{i + 1}.</span>
-                      <span className="text-sm font-medium text-foreground">{l.entry.id}</span>
-                      <span className="text-sm text-muted truncate">{l.entry.location.trim() || "No location"}</span>
+            {report.priorities.length === 0 ? (
+              <p className="rounded-xl border border-border bg-background px-4 py-3 text-sm text-muted">
+                No Open or Planned leaks remain.
+              </p>
+            ) : (
+              <ol className="rounded-xl border border-border bg-background divide-y divide-border">
+                {report.priorities.map((l, i) => (
+                  <li key={l.entry.id} className="px-4 py-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xs font-semibold text-muted shrink-0">{i + 1}.</span>
+                        <span className="text-sm font-medium text-foreground">{l.entry.id}</span>
+                        <span className="text-sm text-muted truncate">{l.entry.location.trim() || "No location"}</span>
+                      </div>
+                      <PriorityBadge priority={l.priority} />
                     </div>
-                    <PriorityBadge priority={l.priority} />
-                  </div>
-                  <div className="mt-1 pl-5 flex flex-wrap gap-x-5 gap-y-0.5 text-xs text-muted">
-                    <span>Annual Savings: <span className="font-medium text-green-700">{formatCurrency(l.annualSavings)}</span></span>
-                    <span>Repair Cost: <span className="font-medium text-foreground">{l.hasRepairCost ? formatCurrency(l.entry.repairCost || 0) : "Not provided"}</span></span>
-                    <span>Payback: <span className="font-medium text-foreground">{formatPayback(l.paybackMonths)}</span></span>
-                  </div>
-                </li>
-              ))}
-            </ol>
+                    <div className="mt-1 pl-5 flex flex-wrap gap-x-5 gap-y-0.5 text-xs text-muted">
+                      <span>Annual Savings: <span className="font-medium text-green-700">{formatCurrency(l.annualSavings)}</span></span>
+                      <span>Repair Cost: <span className="font-medium text-foreground">{l.hasRepairCost ? formatCurrency(l.entry.repairCost || 0) : "Not provided"}</span></span>
+                      <span>Payback: <span className="font-medium text-foreground">{formatPayback(l.paybackMonths)}</span></span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
           </SectionCard>
+
+          {report.completed.length > 0 && (
+            <SectionCard
+              title="Completed / Repaired"
+              description="Closed potential savings are estimates from the original survey, not verified savings."
+            >
+              <div className="rounded-xl border border-border bg-background divide-y divide-border">
+                {report.completed.map((l) => (
+                  <div key={l.entry.id} className="px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">{l.entry.id}</span>
+                      <span className="text-sm text-muted">{l.entry.location.trim() || "No location"}</span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-x-5 gap-y-0.5 text-xs text-muted">
+                      <span>Original Annual Loss: <span className="font-medium text-foreground">{formatCurrency(l.annualCost)}</span></span>
+                      <span>Closed Potential Savings: <span className="font-medium text-green-700">{formatCurrency(l.annualSavings)}</span></span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          )}
 
           {/* Copy / Print */}
           <div className="flex flex-wrap items-center gap-3 print:hidden">

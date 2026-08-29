@@ -82,7 +82,13 @@ function TrapCard({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-primary">{trap.id}</span>
-          <PriorityBadge priority={computed.priority} />
+          {computed.priority !== null ? (
+            <PriorityBadge priority={computed.priority} />
+          ) : (
+            <span className="text-[11px] font-semibold text-muted">
+              {trap.status === "Repaired" ? "Completed" : "No Repair Required"}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-3 print:hidden">
           <select
@@ -163,7 +169,7 @@ function TrapCard({
             className={inputClass}
           >
             {CONDITIONS.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>{c === "Failed Open" ? "Failed Open / Blowing" : c}</option>
             ))}
           </select>
         </div>
@@ -226,6 +232,11 @@ function TrapCard({
           Potential production / process issue — steam loss cost is not estimated automatically.
         </p>
       )}
+      {trap.condition === "Unknown" && (
+        <p className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-2 py-1">
+          Inspection required — entered steam loss is not counted as recoverable until the condition is confirmed.
+        </p>
+      )}
 
       {/* Computed values */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 border-t border-border pt-3">
@@ -238,21 +249,25 @@ function TrapCard({
           <div className="text-sm font-medium text-foreground">{formatNumber(trap.pressure)} {trap.pressureUnit}</div>
         </div>
         <div>
-          <div className="text-[11px] text-muted">Estimated Steam Loss</div>
+          <div className="text-[11px] text-muted">Entered Steam Loss</div>
           <div className="text-sm font-medium text-foreground">{formatNumber(trap.steamLoss)} {trap.lossUnit}</div>
         </div>
         <div>
-          <div className="text-[11px] text-muted">Annual Steam Loss</div>
+          <div className="text-[11px] text-muted">Recoverable Annual Steam Loss</div>
           <div className="text-sm font-medium text-foreground">{formatNumber(computed.annualSteamLossLb, 0)} lb</div>
         </div>
         <div>
-          <div className="text-[11px] text-muted">Annual Cost Loss</div>
+          <div className="text-[11px] text-muted">Recoverable Annual Cost Loss</div>
           <div className="text-sm font-medium text-foreground">{formatCurrency(computed.annualLossCost)}</div>
         </div>
         <div>
-          <div className="text-[11px] text-muted">{computed.hasRepairCost ? "Est. Payback" : "Repair Cost"}</div>
+          <div className="text-[11px] text-muted">{computed.paybackMonths !== null ? "Est. Payback" : "Repair Cost"}</div>
           <div className="text-sm font-medium text-foreground">
-            {computed.hasRepairCost ? formatPayback(computed.paybackMonths) : "Not provided"}
+            {computed.paybackMonths !== null
+              ? formatPayback(computed.paybackMonths)
+              : computed.hasRepairCost
+                ? formatCurrency(trap.repairCost || 0)
+                : "Not provided"}
           </div>
         </div>
       </div>
@@ -526,13 +541,13 @@ export default function SteamTrapSurveyReportBuilder() {
       {traps.length > 0 && (
         <div ref={summaryRef} className="space-y-6">
           <div className="result-card">
-            <h2 className="result-label">Estimated Annual Steam Loss Cost</h2>
+            <h2 className="result-label">Original Recoverable Annual Cost Loss</h2>
             <div className="flex items-baseline gap-2">
               <span className="result-number">{formatCurrency(summary.originalAnnualLoss)}</span>
               <span className="text-sm text-muted">/ year</span>
             </div>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
-              <span className="text-muted">Remaining Open Loss: <span className="font-medium text-foreground">{formatCurrency(summary.remainingOpenLoss)}</span></span>
+              <span className="text-muted">Remaining Recoverable Annual Cost Loss: <span className="font-medium text-foreground">{formatCurrency(summary.remainingOpenLoss)}</span></span>
               <span className="text-muted">Status: <span className="font-medium text-foreground">{summary.openCount} Open · {summary.plannedCount} Planned · {summary.repairedCount} Repaired</span></span>
             </div>
             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm border-t border-border pt-3">
@@ -548,24 +563,24 @@ export default function SteamTrapSurveyReportBuilder() {
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div className="result-tile">
-              <div className="result-tile-label">Total Estimated Steam Loss</div>
+              <div className="result-tile-label">Original Recoverable Steam Loss</div>
               <div className="result-tile-value">{formatNumber(summary.totalSteamLossLbHr)} lb/hr</div>
             </div>
             <div className="result-tile">
-              <div className="result-tile-label">Annual Steam Loss</div>
+              <div className="result-tile-label">Original Recoverable Annual Steam Loss</div>
               <div className="result-tile-value">{formatNumber(summary.totalAnnualSteamLossLb, 0)} lb/year</div>
             </div>
             <div className="result-tile">
-              <div className="result-tile-label">Potential Annual Savings</div>
+              <div className="result-tile-label">Remaining Potential Savings</div>
               <div className="result-tile-value text-green-700">{formatCurrency(summary.potentialAnnualSavings)}</div>
             </div>
             <div className="result-tile">
-              <div className="result-tile-label">Total Estimated Repair Cost</div>
-              <div className="result-tile-value">{formatCurrency(summary.totalRepairCost)}</div>
+              <div className="result-tile-label">Remaining Repair Cost</div>
+              <div className="result-tile-value">{formatCurrency(summary.remainingRepairCost)}</div>
             </div>
             {summary.overallPaybackMonths !== null && (
               <div className="result-tile">
-                <div className="result-tile-label">Overall Payback</div>
+                <div className="result-tile-label">Overall Remaining Payback</div>
                 <div className="result-tile-value">{formatPayback(summary.overallPaybackMonths)}</div>
               </div>
             )}
@@ -574,33 +589,63 @@ export default function SteamTrapSurveyReportBuilder() {
           {/* Repair Priorities */}
           <SectionCard
             title="Repair Priorities"
-            description="Order: HIGH → MEDIUM → LOW → Unrated → Inspection Required; within the same level, highest annual savings first."
+            description="Open and Planned issues only. Order: HIGH → MEDIUM → LOW → Unrated → Inspection Required."
           >
-            <ol className="rounded-xl border border-border bg-background divide-y divide-border">
-              {report.priorities.map((t, i) => (
-                <li key={t.entry.id} className="px-4 py-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs font-semibold text-muted shrink-0">{i + 1}.</span>
-                      <span className="text-sm font-medium text-foreground">{t.entry.id}</span>
-                      <span className="text-sm text-muted truncate">{t.entry.location.trim() || "No location"}</span>
+            {report.priorities.length === 0 ? (
+              <p className="rounded-xl border border-border bg-background px-4 py-3 text-sm text-muted">
+                No open repair or inspection issues remain.
+              </p>
+            ) : (
+              <ol className="rounded-xl border border-border bg-background divide-y divide-border">
+                {report.priorities.map((t, i) => (
+                  <li key={t.entry.id} className="px-4 py-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xs font-semibold text-muted shrink-0">{i + 1}.</span>
+                        <span className="text-sm font-medium text-foreground">{t.entry.id}</span>
+                        <span className="text-sm text-muted truncate">{t.entry.location.trim() || "No location"}</span>
+                      </div>
+                      {t.priority !== null && <PriorityBadge priority={t.priority} />}
                     </div>
-                    <PriorityBadge priority={t.priority} />
-                  </div>
-                  <div className="mt-1 pl-5 flex flex-wrap gap-x-5 gap-y-0.5 text-xs text-muted">
-                    <span>Condition: <span className="font-medium text-foreground">{t.entry.condition}</span></span>
-                    {t.annualSavings > 0 && (
-                      <span>Annual Savings: <span className="font-medium text-green-700">{formatCurrency(t.annualSavings)}</span></span>
-                    )}
-                    <span>Repair Cost: <span className="font-medium text-foreground">{t.hasRepairCost ? formatCurrency(t.entry.repairCost || 0) : "Not provided"}</span></span>
-                    {t.paybackMonths !== null && (
-                      <span>Payback: <span className="font-medium text-foreground">{formatPayback(t.paybackMonths)}</span></span>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ol>
+                    <div className="mt-1 pl-5 flex flex-wrap gap-x-5 gap-y-0.5 text-xs text-muted">
+                      <span>Condition: <span className="font-medium text-foreground">{t.entry.condition}</span></span>
+                      {t.annualSavings > 0 && (
+                        <span>Annual Savings: <span className="font-medium text-green-700">{formatCurrency(t.annualSavings)}</span></span>
+                      )}
+                      <span>Repair Cost: <span className="font-medium text-foreground">{t.hasRepairCost ? formatCurrency(t.entry.repairCost || 0) : "Not provided"}</span></span>
+                      {t.paybackMonths !== null && (
+                        <span>Payback: <span className="font-medium text-foreground">{formatPayback(t.paybackMonths)}</span></span>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
           </SectionCard>
+
+          {report.completed.length > 0 && (
+            <SectionCard
+              title="Completed / Repaired"
+              description="Closed potential savings are original survey estimates, not verified savings."
+            >
+              <div className="rounded-xl border border-border bg-background divide-y divide-border">
+                {report.completed.map((t) => (
+                  <div key={t.entry.id} className="px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">{t.entry.id}</span>
+                      <span className="text-sm text-muted">{t.entry.location.trim() || "No location"}</span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-x-5 gap-y-0.5 text-xs text-muted">
+                      <span>Condition: <span className="font-medium text-foreground">{t.entry.condition}</span></span>
+                      {t.annualSavings > 0 && (
+                        <span>Closed Potential Savings: <span className="font-medium text-green-700">{formatCurrency(t.annualSavings)}</span></span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          )}
 
           {/* Copy / Print */}
           <div className="flex flex-wrap items-center gap-3 print:hidden">
