@@ -8,6 +8,7 @@ export interface Tool {
   toolType: ToolType;
   status: "active" | "draft";
   featured?: boolean;
+  discoverable?: boolean;
 }
 
 export const tools: Tool[] = [
@@ -22,7 +23,7 @@ export const tools: Tool[] = [
   {
     slug: "production-line-quote-comparator",
     name: "Production Line Quote Comparator",
-    description: "Compare machinery quotations apples-to-apples: scope, specs, terms and pricing in one matrix.",
+    description: "Extract supported quote files for a first-pass side-by-side review of scope, specs, terms and pricing.",
     category: "Business & Operations",
     toolType: "Comparison",
     status: "active",
@@ -30,11 +31,12 @@ export const tools: Tool[] = [
   },
   {
     slug: "business-document-difference-checker",
-    name: "Business Document Difference Checker",
-    description: "Compare two business documents and spot important changes in prices, quantities, terms and scope.",
+    name: "Structured Field Difference Checker",
+    description: "Compare two sets of structured Key/Value text and review changed, added or removed fields.",
     category: "Business & Operations",
     toolType: "Checker",
     status: "active",
+    discoverable: false,
   },
   {
     slug: "compressed-air-leak-cost-calculator",
@@ -114,7 +116,7 @@ export function categorySlug(category: string): string {
 }
 
 export function getActiveTools(): Tool[] {
-  return tools.filter((t) => t.status === "active");
+  return tools.filter((t) => t.status === "active" && t.discoverable !== false);
 }
 
 export function getToolsByCategory(category: string): Tool[] {
@@ -129,6 +131,12 @@ export function getRelatedTools(slug: string, limit = 3): Tool[] {
   const current = getToolBySlug(slug);
   if (!current) return [];
   return tools
-    .filter((t) => t.slug !== slug && t.status === "active" && t.category === current.category)
+    .filter(
+      (t) =>
+        t.slug !== slug &&
+        t.status === "active" &&
+        t.discoverable !== false &&
+        t.category === current.category,
+    )
     .slice(0, limit);
 }

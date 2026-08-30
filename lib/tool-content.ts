@@ -57,17 +57,19 @@ export const toolContents: Record<string, ToolContent> = {
   "production-line-quote-comparator": {
     slug: "production-line-quote-comparator",
     subtitle:
-      "Compare production line and machinery quotations side by side. Find missing equipment, unclear scope, different specifications, commercial terms and hidden exclusions before selecting a supplier.",
+      "Run a first-pass extraction of supported supplier quote files and organize the extracted fields for side-by-side review in your browser.",
+    metaDescription:
+      "First-pass browser-based extraction and side-by-side review for supported PDF, XLSX, XLS and CSV supplier quote files. Verify extracted values against the originals.",
     seoSections: [
       {
         title: "What is a Production Line Quote Comparator?",
         content:
-          "A production line quote comparator is a tool that helps buyers compare machinery and equipment quotations from multiple suppliers on a standardized basis. Instead of only looking at total price, it maps each quotation to a fixed comparison schema covering equipment scope, tooling, spare parts, technical specifications, installation and service, commercial terms, and logistics. This allows buyers to identify missing items, unclear scope, and key differences before making a procurement decision.",
+          "This comparator performs first-pass extraction from supported supplier quote files and organizes recognized fields in a standard side-by-side matrix. It can help buyers review equipment scope, specifications, service, commercial terms, and logistics, but it does not understand every quotation layout. Verify all extracted values against the original supplier quotes.",
       },
       {
         title: "How to Use It",
         content:
-          "Upload 2\u20133 supplier quotations or try the built-in demo. The tool extracts key items from each quotation and maps them to a standard comparison matrix. Each item is marked as Included, Missing (not found in the quotation), Unclear (mentioned but scope is not clear), or Different (values vary across suppliers). Below the matrix, the tool highlights missing items, major differences, and generates specific questions to ask each supplier.",
+          "Add 2\u20133 supported supplier quote files or try the built-in example. The tool attempts to extract recognized fields into a standard matrix that you can edit before comparing. Review the matrix against each original quote, especially any blank, Missing, or Unclear field, before making a purchasing decision.",
       },
       {
         title: "Who Is This For?",
@@ -77,7 +79,7 @@ export const toolContents: Record<string, ToolContent> = {
       {
         title: "How It Works",
         content:
-          "Upload or paste 2\u20133 supplier quotations, or try the built-in demo with sample data. The tool maps each quotation to a standard comparison schema covering equipment scope, tooling, spare parts, technical specifications, installation and service, commercial terms, and logistics. Each item is marked as Included, Missing (not found in the quotation), Unclear (mentioned but scope is not clear), or Different (values vary across suppliers). The tool then highlights missing items, major differences, and generates specific questions to ask each supplier before making a procurement decision.",
+          "Supported files are processed in your browser. Text is read from every page of a text-based PDF; scanned or image-only PDFs are not reliably supported because there is no OCR. XLSX, XLS, and CSV files are read from the first worksheet only. Recognized values are mapped into editable comparison fields, so complex layouts may need manual correction.",
       },
       {
         title: "Why Quote Prices Can Be Misleading",
@@ -104,7 +106,22 @@ export const toolContents: Record<string, ToolContent> = {
       {
         question: "Is my quotation data uploaded to a server?",
         answer:
-          "In the current demo version, no real file analysis is performed. The demo uses pre-built sample data. When file analysis becomes available, uploaded files will be processed for extraction only and will not be stored or shared.",
+          "No. Quote file contents are processed in your browser and are not uploaded to UtilRivet. The PDF parser loads its matching processing worker from a third-party CDN, so an internet connection may be required when PDF parsing starts.",
+      },
+      {
+        question: "Which file types are supported?",
+        answer:
+          "The tool accepts PDF, XLSX, XLS, and CSV files. It reads text from all pages of a text-based PDF and processes only the first worksheet in spreadsheet and CSV files. Complex layouts may not map every value correctly.",
+      },
+      {
+        question: "Does it work with scanned PDFs?",
+        answer:
+          "Not reliably. The tool extracts embedded PDF text and does not use OCR, so scanned or image-only pages may produce little or no usable data.",
+      },
+      {
+        question: "Should I verify extracted values?",
+        answer:
+          "Yes. This is first-pass extraction, not a replacement for quote review. Check extracted values, missing fields, and unclear items against each original supplier quote before making purchasing decisions.",
       },
       {
         question: "Is this tool free?",
@@ -116,34 +133,36 @@ export const toolContents: Record<string, ToolContent> = {
   "business-document-difference-checker": {
     slug: "business-document-difference-checker",
     subtitle:
-      "Compare two business documents and quickly find changes in prices, quantities, payment terms, delivery, warranty and scope.",
+      "Compare two sets of structured Key/Value text and review fields that changed, were added, or were removed.",
+    metaDescription:
+      "Compare two structured Key/Value field sets in your browser. Review changed, added, removed and unchanged values without general document understanding.",
     seoSections: [
       {
-        title: "What is a Business Document Difference Checker?",
+        title: "What is a Structured Field Difference Checker?",
         content:
-          "A business document difference checker is a tool that compares two versions of a commercial document and highlights the important changes between them. Instead of showing every minor text change like a generic diff tool, it focuses on the changes that matter for business decisions: price changes, quantity adjustments, payment term modifications, delivery time shifts, warranty reductions, and scope additions or removals. This makes it especially useful for procurement professionals, sales teams, and operations staff who need to quickly understand what changed between document versions.",
+          "A structured field difference checker compares two sets of labeled Key/Value text. It matches field names, then shows values that changed, were added, were removed, or stayed the same. It does not read or understand arbitrary business documents.",
       },
       {
-        title: "Why Compare Business Documents?",
+        title: "How to Format the Input",
         content:
-          "In purchasing, manufacturing, sales, and import/export operations, documents are frequently revised. A supplier may send an original quote and then a revised version with different prices or terms. A purchase order may differ from the invoice. A contract may be updated between versions. Manually comparing these documents is time-consuming and error-prone. A dedicated difference checker helps you spot important changes quickly, reducing the risk of overlooking critical modifications that could affect costs, timelines, or legal obligations.",
+          "Prepare one field per line using a colon or dash between the label and value. For example: Payment Terms: Net 30, Lead Time: 6 weeks, and Warranty: 12 months. Paste the earlier field set on the left and the revised field set on the right.",
       },
       {
-        title: "What Changes Should You Look For?",
+        title: "What the Tool Compares",
         content:
-          "When comparing business documents, the most important changes typically involve: price increases or decreases, changes in payment terms such as deposit percentages, delivery time extensions or reductions, warranty period changes, items that were included but are now excluded or vice versa, freight and shipping cost changes, validity period modifications, and any new or removed line items. These changes can significantly impact the total cost of a deal and should always be verified before proceeding.",
+          "The tool compares the structured fields you provide. It can label fields as Changed, Added, Removed, or Unchanged and calculate simple numeric differences for values such as prices, percentages, days, and months. It does not extract fields from uploaded files or free-form document text.",
       },
       {
-        title: "Common Use Cases",
+        title: "Review Boundary",
         content:
-          "This tool is commonly used to compare an original supplier quote against a revised quote, compare a quote against a purchase order to verify alignment, compare a purchase order against an invoice to check for discrepancies, compare two versions of a contract to identify modified terms, and compare an invoice against a packing list to verify shipped items. It is suitable for purchasing teams, manufacturing operations, sales professionals, import/export coordinators, and small business owners who regularly deal with commercial documents.",
+          "Use the results as a field-by-field review aid. Confirm important values against the original source documents, because the tool only compares the structured text that you paste and does not perform semantic document analysis.",
       },
     ],
     faq: [
       {
-        question: "Can I compare two business documents?",
+        question: "What input does this tool accept?",
         answer:
-          "Yes. Paste the text of both documents into the input fields and click Compare Documents. The tool will identify all changes between the two documents and highlight the most important ones.",
+          "Paste structured Key/Value lines into both fields. Supported separators include a colon, an em dash, or a hyphen, such as Payment Terms: Net 30 or Lead Time — 6 weeks.",
       },
       {
         question: "What types of changes does the tool detect?",
@@ -151,29 +170,19 @@ export const toolContents: Record<string, ToolContent> = {
           "The tool detects four types of changes: CHANGED (a value was modified), ADDED (a new item appears in Document B), REMOVED (an item from Document A is missing in Document B), and UNCHANGED (items that are identical in both documents). It also calculates numeric differences for prices, percentages, days, and months.",
       },
       {
-        question: "Can I compare supplier quotations?",
+        question: "Can it understand a complete quote, purchase order, invoice, or contract?",
         answer:
-          "Yes. This is one of the primary use cases. Paste the original quote as Document A and the revised quote as Document B. The tool will highlight price changes, term modifications, and any items that were added or removed.",
-      },
-      {
-        question: "Can I compare a quote and purchase order?",
-        answer:
-          "Yes. Paste the quote as Document A and the purchase order as Document B. The tool will show you any differences in prices, quantities, terms, or scope between the two documents.",
-      },
-      {
-        question: "Can I compare invoices?",
-        answer:
-          "Yes. You can compare any two text-based business documents, including invoices, packing lists, contracts, and purchase orders.",
+          "No. It does not upload, parse, or semantically understand complete documents. First organize the values you want to compare as structured Key/Value lines.",
       },
       {
         question: "Are my documents uploaded to a server?",
         answer:
-          "No. Your document text is processed entirely in your browser. Nothing is uploaded, stored, or transmitted to any server.",
+          "No. The structured text you paste is processed entirely in your browser. Nothing is uploaded, stored, or transmitted to a server.",
       },
       {
         question: "Can this replace legal review?",
         answer:
-          "No. This tool highlights document differences for review purposes only. Always verify important commercial and legal terms against the original documents and consult with appropriate professionals when needed.",
+          "No. This tool compares structured fields for review purposes only. Always verify important commercial and legal terms against the original source documents and consult appropriate professionals when needed.",
       },
     ],
   },

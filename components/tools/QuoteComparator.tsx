@@ -392,7 +392,7 @@ function FileDropZone({ onFilesImported }: { onFilesImported: (drafts: DraftSupp
           Drag & drop supplier quotation files here
         </p>
         <p className="text-xs text-muted">
-          PDF, Excel (.xlsx, .xls, .csv) — 2 to 3 files
+          PDF, XLSX, XLS, and CSV — 2 to 3 files
         </p>
         <button
           type="button"
@@ -414,6 +414,15 @@ function FileDropZone({ onFilesImported }: { onFilesImported: (drafts: DraftSupp
           }}
         />
         {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+      </div>
+      <div className="border-t border-border px-4 py-3 text-xs leading-relaxed text-muted">
+        <p>
+          <span className="font-semibold text-foreground">First-pass extraction.</span>{" "}
+          Review extracted values against the original supplier quote before making purchasing decisions.
+        </p>
+        <p className="mt-1">
+          Text-based PDFs are read in the browser. Scanned or image-only PDFs are not reliably supported because this tool does not use OCR. For XLSX, XLS, and CSV files, only the first worksheet is processed; complex layouts may require manual correction.
+        </p>
       </div>
     </div>
   );

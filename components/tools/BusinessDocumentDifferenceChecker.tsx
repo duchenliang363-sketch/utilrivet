@@ -130,10 +130,10 @@ export default function BusinessDocumentDifferenceChecker() {
     <div className="space-y-6">
       {/* Input area */}
       <div className="grid gap-4 sm:grid-cols-2">
-        {/* Document A */}
+        {/* Field Set A */}
         <div>
-          <label className="field-label">Document A</label>
-          <p className="text-[13px] text-muted mb-2">Original or earlier version</p>
+          <label className="field-label">Field Set A</label>
+          <p className="text-[13px] text-muted mb-2">Original structured Key/Value text</p>
           <textarea
             value={docA}
             onChange={(e) => setDocA(e.target.value)}
@@ -142,10 +142,10 @@ export default function BusinessDocumentDifferenceChecker() {
           />
         </div>
 
-        {/* Document B */}
+        {/* Field Set B */}
         <div>
-          <label className="field-label">Document B</label>
-          <p className="text-[13px] text-muted mb-2">Revised or newer version</p>
+          <label className="field-label">Field Set B</label>
+          <p className="text-[13px] text-muted mb-2">Revised structured Key/Value text</p>
           <textarea
             value={docB}
             onChange={(e) => setDocB(e.target.value)}
@@ -162,7 +162,7 @@ export default function BusinessDocumentDifferenceChecker() {
           disabled={!docA.trim() || !docB.trim()}
           className="btn btn-primary"
         >
-          Compare Documents
+          Compare Fields
         </button>
         <button onClick={handleDemo} className="btn btn-secondary">
           Try Demo
@@ -178,7 +178,7 @@ export default function BusinessDocumentDifferenceChecker() {
       {!result && (
         <EmptyState
           title="No comparison yet"
-          hint="Paste two document versions or try the demo to see how it works."
+          hint="Paste two structured Key/Value field sets or try the demo to see how it works."
           action={
             <button onClick={handleDemo} className="btn btn-secondary btn-sm">
               Try Demo
