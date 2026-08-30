@@ -136,3 +136,25 @@ test("open leak without repair cost remains visible with savings and Unrated pri
   assert.equal(report.priorities[0].entry.id, "L-001");
   assert.equal(report.priorities[0].priority, "Unrated");
 });
+
+test("print presentation keeps future labels for Open and historical labels for Repaired", () => {
+  const component = fs.readFileSync(
+    new URL("../../components/tools/CompressedAirLeakSurveyReportBuilder.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(
+    component,
+    /leak\.status === "Repaired"\s*\? "Original Potential Savings"\s*: "Potential Savings"/,
+  );
+  assert.match(
+    component,
+    /leak\.status === "Repaired"\s*\? "Original Est\. Payback"\s*: "Est\. Payback"/,
+  );
+  assert.match(component, /Historical survey estimate — leak marked Repaired\./);
+  assert.doesNotMatch(
+    component,
+    />Potential Savings<|>Est\. Payback</,
+    "single-record labels must not bypass the status-aware copy",
+  );
+});

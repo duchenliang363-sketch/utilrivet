@@ -180,16 +180,28 @@ function LeakCard({
           <div className="text-sm font-medium text-foreground">{formatCurrency(computed.annualCost)}</div>
         </div>
         <div>
-          <div className="text-[11px] text-muted">Potential Savings</div>
+          <div className="text-[11px] text-muted">
+            {leak.status === "Repaired" ? "Original Potential Savings" : "Potential Savings"}
+          </div>
           <div className="text-sm font-medium text-green-700">{formatCurrency(computed.annualSavings)}</div>
         </div>
         <div>
-          <div className="text-[11px] text-muted">{computed.hasRepairCost ? "Est. Payback" : "Repair Cost"}</div>
+          <div className="text-[11px] text-muted">
+            {computed.hasRepairCost
+              ? leak.status === "Repaired"
+                ? "Original Est. Payback"
+                : "Est. Payback"
+              : "Repair Cost"}
+          </div>
           <div className="text-sm font-medium text-foreground">
             {computed.hasRepairCost ? formatPayback(computed.paybackMonths) : "Not provided"}
           </div>
         </div>
       </div>
+
+      {leak.status === "Repaired" && (
+        <p className="text-xs text-muted">Historical survey estimate — leak marked Repaired.</p>
+      )}
 
       {/* Print-only details */}
       <div className="hidden print:block text-xs text-muted">
