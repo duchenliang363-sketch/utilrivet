@@ -307,6 +307,13 @@ export default function CompressedAirLeakSurveyReportBuilder() {
 
   return (
     <div className="space-y-8">
+      <div className="rounded-xl border border-border bg-surface px-4 py-3 text-sm leading-relaxed text-muted print:hidden">
+        <p className="font-medium text-foreground">Enter leak measurements collected during your field survey.</p>
+        <p className="mt-1">
+          UtilRivet does not detect compressed air leaks or replace ultrasonic inspection equipment.
+        </p>
+      </div>
+
       {/* Print-only report header */}
       <div className="hidden print:block">
         <div className="text-xs font-semibold tracking-widest text-muted uppercase">UtilRivet</div>

@@ -7,9 +7,14 @@ import { getToolContent } from "./tool-content.ts";
 
 const quoteSlug = "production-line-quote-comparator";
 const differenceSlug = "business-document-difference-checker";
+const compressedAirSurveySlug = "compressed-air-leak-survey-report-builder";
 
 const quoteComponent = readFileSync(
   new URL("../components/tools/QuoteComparator.tsx", import.meta.url),
+  "utf8",
+);
+const compressedAirSurveyComponent = readFileSync(
+  new URL("../components/tools/CompressedAirLeakSurveyReportBuilder.tsx", import.meta.url),
   "utf8",
 );
 const routeSource = readFileSync(
@@ -63,4 +68,47 @@ test("Difference Checker copy limits the tool to structured Key/Value text", () 
     visibleCopy,
     /compare any two text-based business documents|compare a quote against a purchase order|compare two versions of a contract/i,
   );
+});
+
+test("Compressed Air Leak Survey is positioned as a survey workflow, not a detection tool", () => {
+  const tool = getToolBySlug(compressedAirSurveySlug);
+  const content = getToolContent(compressedAirSurveySlug);
+  assert.ok(tool);
+  assert.ok(content);
+
+  const visibleCopy = JSON.stringify(content);
+  assert.equal(tool.name, "Compressed Air Leak Survey Tool");
+  assert.equal(content.slug, compressedAirSurveySlug, "the indexed URL slug must stay unchanged");
+  assert.match(content.subtitle, /Record identified compressed air leaks/);
+  assert.match(
+    compressedAirSurveyComponent,
+    /Enter leak measurements collected during your field survey\./,
+  );
+  assert.match(
+    compressedAirSurveyComponent,
+    /UtilRivet does not detect compressed air leaks or replace ultrasonic inspection equipment\./,
+  );
+  assert.match(visibleCopy, /UtilRivet does not detect compressed air leaks\./);
+  assert.match(visibleCopy, /field inspection or ultrasonic leak survey/);
+  assert.match(visibleCopy, /How is compressed air leak cost estimated\?/);
+  assert.doesNotMatch(
+    visibleCopy,
+    /Detect leaks with UtilRivet|Compressed Air Leak Detection Tool|whole process|documents the verification step|From leak survey to repair verification/i,
+  );
+});
+
+test("Compressed Air Leak Survey copy preserves the audit and repaired-status boundaries", () => {
+  const tool = getToolBySlug(compressedAirSurveySlug);
+  const content = getToolContent(compressedAirSurveySlug);
+  assert.ok(tool);
+  assert.ok(content);
+
+  const visibleCopy = JSON.stringify(content);
+  assert.match(tool.description, /track completed fixes/);
+  assert.match(visibleCopy, /not a complete compressed air system audit/i);
+  assert.match(visibleCopy, /one part of a broader compressed air audit/i);
+  assert.match(visibleCopy, /Original Potential Savings/);
+  assert.match(visibleCopy, /Closed Potential Savings/);
+  assert.match(visibleCopy, /Remaining Potential Savings/);
+  assert.doesNotMatch(visibleCopy, /Complete Compressed Air Audit|Compressed Air System Audit Software/);
 });

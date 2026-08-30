@@ -464,24 +464,24 @@ export const toolContents: Record<string, ToolContent> = {
   "compressed-air-leak-survey-report-builder": {
     slug: "compressed-air-leak-survey-report-builder",
     subtitle:
-      "Record compressed air leaks, estimate annual losses, prioritize repairs, and build a clear survey report directly in your browser.",
+      "Record identified compressed air leaks, estimate air loss and annual energy cost, prioritize repairs, track completed fixes, and generate a survey-ready report.",
     metaDescription:
-      "Record compressed air leaks, estimate annual energy loss, prioritize repairs, and create a clear survey report online. No signup required.",
+      "Compressed air leak survey tool for recording identified leaks, estimating annual energy cost, prioritizing repairs, tracking fixes, and generating a report.",
     seoSections: [
       {
         title: "What is a compressed air leak survey?",
         content:
-          "A compressed air leak survey is a structured process for managing leaks in a compressed air system: locate each leak, identify and tag it, measure or estimate its flow, document the findings, prioritize repairs, fix the leaks, and verify the results. Instead of remembering leak locations or keeping scattered notes, the survey produces one structured record — the basis of a compressed air leak survey report, leak log, or inspection report. Because leaking air is paid for twice — once to compress it and again in lost production capacity — a regular survey is one of the most reliable ways to reduce compressed air energy cost. Instead of starting with a blank spreadsheet or paper leak log, this builder provides a structured browser-based workflow for the whole process.",
+          "A compressed air leak survey is a structured process for identifying and measuring leaks in the field, recording the findings, estimating energy loss and cost, prioritizing repairs, tracking completed work, and reporting the results. After leaks are identified during a field inspection or ultrasonic leak survey, this browser tool turns the measurements into a consistent survey record. UtilRivet does not detect compressed air leaks. Use measurements collected during your field inspection or ultrasonic leak survey.",
       },
       {
         title: "What should a compressed air leak survey report include?",
         content:
-          "A useful compressed air leak report documents the survey itself and every leak found: the survey date, facility or area, system operating assumptions, and for each leak a tag or ID, location, equipment, estimated flow, annual energy loss, annual cost, repair priority, and repair status. The summary should show the total estimated annual loss, the loss still open, and a repair list ordered by priority. This builder produces exactly that structure and lets you copy the summary as text or print it as a PDF — the same fields used in common compressed air leak survey templates and leak log sheets.",
+          "A useful compressed air leak report records the survey date, facility or area, operating assumptions, and for each identified leak a tag or ID, location, equipment, measured or estimated flow, annual energy loss, annual cost, repair priority, and repair status. The summary separates the original survey estimate, closed potential savings, and remaining opportunity. This tool organizes those fields and lets you copy the summary or print the survey report.",
       },
       {
         title: "How to use this compressed air leak survey tool",
         content:
-          "1. Enter the survey settings: project, facility, date, operating hours, electricity rate, compressor specific power, and recoverable share. 2. Add each detected leak. 3. Record its location, equipment, and estimated flow from your detection method. 4. Review the estimated annual loss for each leak and the total. 5. Prioritize repairs — leaks with a repair cost are rated by payback. 6. Update the repair status (Open, Planned, Repaired) as work progresses. 7. Print or copy the survey summary. Use Try Example at any time to load a complete sample survey and see the full workflow.",
+          "1. Identify or measure leaks during a field inspection using your own detection method. 2. Enter the survey settings: project, facility, date, operating hours, electricity rate, compressor specific power, and recoverable share. 3. Add each identified leak with its location, equipment, and measured or estimated flow. 4. Review the estimated air loss and annual energy cost. 5. Prioritize open repairs using estimated payback when a repair cost is available. 6. Update the status to Open, Planned, or Repaired as work progresses. 7. Copy or print the survey report. Use Try Example to preview the workflow.",
       },
       {
         title: "How compressed air leak cost is estimated",
@@ -498,16 +498,16 @@ export const toolContents: Record<string, ToolContent> = {
         },
       },
       {
-        title: "From leak survey to repair verification",
+        title: "From leak survey to repair tracking",
         content:
-          "Finding leaks is only the first step. A real leak program closes the loop: find, record, repair, verify. Each leak in this builder carries a repair status — Open, Planned, or Repaired — so the report always shows both the original estimated annual loss and the remaining open loss. Marking a leak Repaired removes it from the open loss and documents the verification step. This closed-loop tracking is what turns a one-time inspection into an ongoing compressed air leak repair log that maintenance teams and contractors can revisit after every survey.",
+          "Field detection is only the first step. After identified leaks are entered, each record can be marked Open, Planned, or Repaired. The report keeps Original Potential Savings and Closed Potential Savings separate from Remaining Potential Savings. Marking a leak Repaired removes its estimated savings, repair cost, payback, and priority from future opportunity while retaining the historical survey estimate. Repaired is a user-recorded status; the tool does not independently verify the physical repair.",
       },
     ],
     faq: [
       {
         question: "What is a compressed air leak survey?",
         answer:
-          "A systematic walk-through of a compressed air system to locate, tag, measure or estimate, and document every leak, then turn the findings into a total estimated annual loss and a prioritized repair list. It is usually done with an ultrasonic leak detector and repeated on a regular schedule.",
+          "It is a field inspection and follow-up workflow used to identify, tag, measure or estimate, and document compressed air leaks, then quantify estimated loss, prioritize repairs, track completed fixes, and report the results.",
       },
       {
         question: "What should a compressed air leak survey report include?",
@@ -525,6 +525,11 @@ export const toolContents: Record<string, ToolContent> = {
           "At minimum: location, estimated leak flow, and repair status. Adding an equipment name, repair cost estimate, and notes makes the log much more useful, because the repair cost is what allows the tool to rate priority by payback.",
       },
       {
+        question: "How is compressed air leak cost estimated?",
+        answer:
+          "The tool converts the entered leak flow to estimated compressor power using your specific-power setting, multiplies it by annual operating hours, and applies your electricity rate. Results are planning estimates based on the measurements and assumptions you provide.",
+      },
+      {
         question: "Which leaks should be repaired first?",
         answer:
           "The ones with the shortest payback: repair cost divided by annual savings. Payback of 3 months or less is HIGH priority, 3–12 months is MEDIUM, over 12 months is LOW. Leaks without an estimated repair cost are shown as Unrated until you add one.",
@@ -540,9 +545,14 @@ export const toolContents: Record<string, ToolContent> = {
           "Yes, for most survey workflows. Instead of maintaining a blank spreadsheet or paper leak log sheet, you enter leaks into a structured form and the tool calculates costs, priorities, and the summary automatically. If your team prefers spreadsheets, you can still copy the summary text into one.",
       },
       {
-        question: "Does this tool require a specific ultrasonic detector?",
+        question: "Can this tool detect compressed air leaks?",
         answer:
-          "No. It is vendor-neutral — enter the estimated leak flow from whatever detection method you already use, whether that is an ultrasonic detector of any brand or an estimation method. No device connection is needed.",
+          "No — UtilRivet does not physically detect leaks. Enter measurements collected during your field inspection, compressed air leak detection survey, or ultrasonic leak survey.",
+      },
+      {
+        question: "Does this replace an ultrasonic leak detector?",
+        answer:
+          "No. Use your inspection method or ultrasonic leak detector to locate and measure leaks in the field. UtilRivet starts with the data you enter and supports survey analysis, repair tracking, and reporting; it does not connect to or replace detection equipment.",
       },
       {
         question: "Does UtilRivet store my survey data?",
@@ -550,9 +560,9 @@ export const toolContents: Record<string, ToolContent> = {
           "No. The tool runs entirely in your browser: survey data is never uploaded or sent to a server, and there is no account. It is also not stored on your device after the session ends, so print or copy the survey summary before closing the page.",
       },
       {
-        question: "Does this replace a professional compressed air audit?",
+        question: "Is a leak survey the same as a compressed air audit?",
         answer:
-          "No. This tool creates estimates and a structured report for maintenance planning. It is not a certified audit or engineering approval. Actual savings depend on compressor performance, system controls, operating conditions, and measured leak flow.",
+          "No — this is not a complete compressed air system audit. A leak survey can be one part of a broader compressed air audit or leak management program, but this tool does not analyze compressor performance, pressure, storage, dryers, or system controls.",
       },
     ],
   },
