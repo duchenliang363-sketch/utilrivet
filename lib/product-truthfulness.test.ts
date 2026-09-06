@@ -76,39 +76,34 @@ test("Compressed Air Leak Survey is positioned as a survey workflow, not a detec
   assert.ok(tool);
   assert.ok(content);
 
-  const visibleCopy = JSON.stringify(content);
+  const visibleCopy = JSON.stringify(content) + compressedAirSurveyComponent;
   assert.equal(tool.name, "Compressed Air Leak Survey Tool");
   assert.equal(content.slug, compressedAirSurveySlug, "the indexed URL slug must stay unchanged");
-  assert.match(content.subtitle, /Record identified compressed air leaks/);
-  assert.match(
-    compressedAirSurveyComponent,
-    /Enter leak measurements collected during your field survey\./,
-  );
-  assert.match(
-    compressedAirSurveyComponent,
-    /UtilRivet does not detect compressed air leaks or replace ultrasonic inspection equipment\./,
-  );
   assert.match(visibleCopy, /UtilRivet does not detect compressed air leaks\./);
   assert.match(visibleCopy, /field inspection or ultrasonic leak survey/);
   assert.match(visibleCopy, /How is compressed air leak cost estimated\?/);
+  assert.match(compressedAirSurveyComponent, /Leak Register|Repair Queue|Verified Closed|Failed Re-test/);
   assert.doesNotMatch(
     visibleCopy,
-    /Detect leaks with UtilRivet|Compressed Air Leak Detection Tool|whole process|documents the verification step|From leak survey to repair verification/i,
+    /Detect leaks with UtilRivet|Compressed Air Leak Detection Tool|whole process/i,
   );
 });
 
-test("Compressed Air Leak Survey copy preserves the audit and repaired-status boundaries", () => {
+test("Compressed Air Leak Survey copy matches the verified-close workflow, not the old three-status model", () => {
   const tool = getToolBySlug(compressedAirSurveySlug);
   const content = getToolContent(compressedAirSurveySlug);
   assert.ok(tool);
   assert.ok(content);
 
   const visibleCopy = JSON.stringify(content);
-  assert.match(tool.description, /track completed fixes/);
+  assert.match(tool.description, /leak register|re-test|survey report/i);
   assert.match(visibleCopy, /not a complete compressed air system audit/i);
   assert.match(visibleCopy, /one part of a broader compressed air audit/i);
-  assert.match(visibleCopy, /Original Potential Savings/);
-  assert.match(visibleCopy, /Closed Potential Savings/);
-  assert.match(visibleCopy, /Remaining Potential Savings/);
+  assert.match(visibleCopy, /Verified Closed/);
+  assert.match(visibleCopy, /Failed Re-test/);
+  assert.match(visibleCopy, /Awaiting Re-test/);
+  assert.doesNotMatch(visibleCopy, /Original Potential Savings|Closed Potential Savings|Remaining Potential Savings/);
+  assert.doesNotMatch(visibleCopy, /Open, Planned, or Repaired/);
+  assert.doesNotMatch(visibleCopy, /rated HIGH priority, 3–12 months MEDIUM/);
   assert.doesNotMatch(visibleCopy, /Complete Compressed Air Audit|Compressed Air System Audit Software/);
 });
