@@ -476,22 +476,22 @@ export const toolContents: Record<string, ToolContent> = {
       {
         title: "What should a compressed air leak survey report include?",
         content:
-          "A useful compressed air leak report records the survey date, facility or area, operating assumptions, and for each identified leak a tag or ID, location, equipment, measured or estimated flow, annual energy loss, annual cost, repair priority, and repair status. The summary separates the original survey estimate, closed potential savings, and remaining opportunity. This tool organizes those fields and lets you copy the summary or print the survey report.",
+          "A useful compressed air leak report documents the survey itself and every leak found: the survey date, facility or area, system operating assumptions, and for each leak a tag or ID, location, equipment, estimated flow, annual energy loss, annual cost, and repair status (Open, Planned, Awaiting Re-test, Verified Closed, or Failed Re-test). The summary should show Estimated Opportunity, Verified Result for closed leaks only, remaining open opportunity, and a repair queue ordered by urgency, operational impact, access, annual cost opportunity, and payback when a cost exists. This builder produces that structure and lets you export a work pack, management report, CSV register, or JSON backup.",
       },
       {
         title: "How to use this compressed air leak survey tool",
         content:
-          "1. Identify or measure leaks during a field inspection using your own detection method. 2. Enter the survey settings: project, facility, date, operating hours, electricity rate, compressor specific power, and recoverable share. 3. Add each identified leak with its location, equipment, and measured or estimated flow. 4. Review the estimated air loss and annual energy cost. 5. Prioritize open repairs using estimated payback when a repair cost is available. 6. Update the status to Open, Planned, or Repaired as work progresses. 7. Copy or print the survey report. Use Try Example to preview the workflow.",
+          "1. Enter the survey settings: project, facility, date, operating hours, electricity rate, compressor specific power, control adjustment factor, and savings realization fraction. 2. Capture each leak with the handover fields. 3. Review the leak register. 4. Work the repair queue. 5. Record the repair, then re-test. Verified Closed requires post-repair flow of 0; Failed Re-test stays in the queue as still leaking. 6. Export the work pack, management report, CSV register, or JSON backup. Load the 21-leak demo project to see the full workflow.",
       },
       {
         title: "How compressed air leak cost is estimated",
         content:
-          "Each leak\u2019s flow rate (CFM or L/s) is converted to compressor power using the specific power setting: leak power (kW) = flow (CFM) ÷ 100 × specific power (kW per 100 CFM). Multiplying by annual operating hours (hours per day × days per year) gives the wasted energy in kWh, and multiplying by the electricity rate gives the estimated annual cost. When a repair cost is provided, annual savings are the annual cost multiplied by the recoverable percentage, and payback is repair cost ÷ annual savings. Leaks paying back within 3 months are rated HIGH priority, 3–12 months MEDIUM, over 12 months LOW, and leaks without a repair cost stay Unrated. The repair list is sorted by priority, then by annual savings. These are estimates based on specific power and electricity cost assumptions — actual losses depend on compressor performance, control strategy, and system pressure — so treat them as planning values rather than measured results.",
+          "Each leak\u2019s flow rate is converted to SCFM, then to compressor power using specific power (kW / 100 SCFM), the compressor control adjustment factor, annual hours, electricity rate, and the savings realization fraction. That product is the Estimated Opportunity used for planning. Verified Result is counted only after a leak is Verified Closed (re-test post-repair flow of 0). The repair queue is ordered by urgency, then operational impact, repair access, annual cost opportunity, and payback when a repair cost exists — not by HIGH/MEDIUM/LOW payback badges. These are planning figures; actual losses depend on compressor performance, control strategy, and measured leak flow.",
       },
       {
         title: "Example compressed air leak survey",
         content:
-          "Example: a plant survey identifies several leaks across production areas. With default settings (16 h/day, 250 days/year, $0.12/kWh, 18 kW/100 CFM), Leak A — a 12 CFM main line coupling — is estimated at about $933 per year, Leak B — a 6 CFM packaging valve — about $466 per year, and Leak C — an 18 CFM air dryer connection — about $1,244 per year. The tool sums every leak into a total estimated annual loss of roughly $3,800 for the five-leak example survey, rates each repair by payback, and lists the highest-loss leaks first. Click Try Example in the workspace above to load this exact survey.",
+          "Example: a plant survey identifies several leaks across production areas. With 16 h/day, 250 days/year, $0.12/kWh, and 18 kW/100 SCFM, a 12 SCFM coupling is about $933 per year of Estimated Opportunity before the realization fraction. The 21-leak demo project includes Open, Planned, Awaiting Re-test, Verified Closed, and Failed Re-test records. The repair queue ranks those still open by urgency, operational impact, access, annual cost opportunity, then payback when a cost is entered. Load the 21-leak demo project in the workspace above.",
         cta: {
           label: "Need to estimate a single leak? Open the Compressed Air Leak Cost Calculator",
           slug: "compressed-air-leak-cost-calculator",
@@ -500,7 +500,7 @@ export const toolContents: Record<string, ToolContent> = {
       {
         title: "From leak survey to repair tracking",
         content:
-          "Field detection is only the first step. After identified leaks are entered, each record can be marked Open, Planned, or Repaired. The report keeps Original Potential Savings and Closed Potential Savings separate from Remaining Potential Savings. Marking a leak Repaired removes its estimated savings, repair cost, payback, and priority from future opportunity while retaining the historical survey estimate. Repaired is a user-recorded status; the tool does not independently verify the physical repair.",
+          "Finding leaks is only the first step. A real leak program closes the loop: find, record, repair, re-test. Each leak carries a status — Open, Planned, Awaiting Re-test, Verified Closed, or Failed Re-test. Estimated Opportunity stays the planning figure. Verified Result is recorded only when re-test confirms post-repair flow of 0. A Failed Re-test (still leaking) returns to the repair queue and is not counted as Verified Closed. This closed-loop tracking is what turns a one-time inspection into an ongoing compressed air leak repair log.",
       },
     ],
     faq: [
@@ -512,17 +512,17 @@ export const toolContents: Record<string, ToolContent> = {
       {
         question: "What should a compressed air leak survey report include?",
         answer:
-          "The survey date, facility or area, operating assumptions (hours, electricity rate, specific power), and for each leak: a tag or ID, location, estimated flow, annual cost, repair priority, and repair status. The summary should show the total estimated annual loss, the remaining open loss, and the repair order.",
+          "The survey date, facility or area, operating assumptions (hours, electricity rate, specific power), and for each leak: a tag or ID, location, estimated flow, annual cost, and repair status (Open, Planned, Awaiting Re-test, Verified Closed, or Failed Re-test). The summary should show Estimated Opportunity, Verified Result for closed leaks only, remaining open opportunity, and the repair queue order.",
       },
       {
         question: "How do you document compressed air leaks?",
         answer:
-          "Give each leak a unique ID or tag, record where it is and on which equipment, note the estimated flow and your measurement method, estimate the annual cost, assign a repair priority, and track the repair status. Printing or exporting the resulting list gives you a leak log or survey report you can share with maintenance or customers.",
+          "Give each leak a unique ID or tag, record where it is and on which equipment, note the estimated flow and your measurement method, estimate the annual cost, and track repair status through re-test. Printing or exporting the resulting list gives you a leak log or survey report you can share with maintenance or customers.",
       },
       {
         question: "What information should be recorded for each leak?",
         answer:
-          "At minimum: location, estimated leak flow, and repair status. Adding an equipment name, repair cost estimate, and notes makes the log much more useful, because the repair cost is what allows the tool to rate priority by payback.",
+          "At minimum: tag, area, exact location, estimated leak flow, and repair status. Adding asset, access, operational impact, urgency, and a repair cost estimate makes the register and repair queue more useful.",
       },
       {
         question: "How is compressed air leak cost estimated?",
@@ -532,7 +532,7 @@ export const toolContents: Record<string, ToolContent> = {
       {
         question: "Which leaks should be repaired first?",
         answer:
-          "The ones with the shortest payback: repair cost divided by annual savings. Payback of 3 months or less is HIGH priority, 3–12 months is MEDIUM, over 12 months is LOW. Leaks without an estimated repair cost are shown as Unrated until you add one.",
+          "The repair queue is ordered by urgency, then operational impact, repair access, annual cost opportunity, and payback when a repair cost exists. Each row states why it sits there. Payback is a later tie-breaker, not a HIGH/MEDIUM/LOW badge.",
       },
       {
         question: "How often should compressed air leaks be surveyed?",
@@ -557,7 +557,7 @@ export const toolContents: Record<string, ToolContent> = {
       {
         question: "Does UtilRivet store my survey data?",
         answer:
-          "No. The tool runs entirely in your browser: survey data is never uploaded or sent to a server, and there is no account. It is also not stored on your device after the session ends, so print or copy the survey summary before closing the page.",
+          "The tool runs entirely in your browser: survey data is never uploaded or sent to a server, and there is no account. The active survey project is saved automatically in this browser so a refresh does not wipe the register. Export a JSON backup if you need a file copy, and do not rely on one device as the only copy.",
       },
       {
         question: "Is a leak survey the same as a compressed air audit?",
