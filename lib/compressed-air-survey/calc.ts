@@ -104,19 +104,37 @@ export function computeLeak(entry: LeakEntry, s: SurveySettings): LeakComputed {
   };
 
   let verified: LeakComputed["verified"] = null;
+  let stillLeaking: LeakComputed["stillLeaking"] = null;
   if (entry.retest) {
     const postRepairSCFM = toSCFM(entry.retest.postRepairFlow, entry.retest.flowUnit);
-    const closedSCFM = Math.max(0, baselineSCFM - postRepairSCFM);
-    const ver = energyCost(closedSCFM, s);
-    verified = {
-      kind: "Verified Result",
-      baselineSCFM,
-      postRepairSCFM,
-      closedSCFM,
-      leakPowerKW: ver.leakPowerKW,
-      annualEnergyKWh: ver.annualEnergyKWh,
-      annualCostAvoided: ver.opportunity,
-    };
+    const closed =
+      entry.status === "Verified Closed" &&
+      entry.retest.result === "Pass" &&
+      postRepairSCFM === 0;
+    if (closed) {
+      const ver = energyCost(baselineSCFM, s);
+      verified = {
+        kind: "Verified Result",
+        baselineSCFM,
+        postRepairSCFM,
+        closedSCFM: baselineSCFM,
+        leakPowerKW: ver.leakPowerKW,
+        annualEnergyKWh: ver.annualEnergyKWh,
+        annualCostAvoided: ver.opportunity,
+      };
+    } else {
+      const remainingSCFM = postRepairSCFM;
+      const measuredReductionSCFM = Math.max(0, baselineSCFM - remainingSCFM);
+      const rem = energyCost(remainingSCFM, s);
+      stillLeaking = {
+        kind: "Re-tested / Reduced but Still Leaking",
+        baselineSCFM,
+        postRepairSCFM,
+        measuredReductionSCFM,
+        remainingSCFM,
+        remainingOpportunity: rem.opportunity,
+      };
+    }
   }
 
   const hasEstimatedRepairCost = entry.estimatedRepairCost !== null && entry.estimatedRepairCost > 0;
@@ -135,6 +153,7 @@ export function computeLeak(entry: LeakEntry, s: SurveySettings): LeakComputed {
     baselineSCFM,
     estimated,
     verified,
+    stillLeaking,
     hasEstimatedRepairCost,
     paybackMonths,
     actualPaybackMonths,
@@ -149,7 +168,7 @@ export function buildSurveyReport(s: SurveySettings, entries: LeakEntry[]): Surv
   const verifiedResultTotal = leaks.reduce((a, l) => a + (l.verified?.annualCostAvoided ?? 0), 0);
   const remainingOpenOpportunity = leaks
     .filter((l) => l.inRepairQueue)
-    .reduce((a, l) => a + l.estimated.opportunity, 0);
+    .reduce((a, l) => a + (l.stillLeaking?.remainingOpportunity ?? l.estimated.opportunity), 0);
   const awaitingRetestOpportunity = leaks
     .filter((l) => l.entry.status === "Awaiting Re-test")
     .reduce((a, l) => a + l.estimated.opportunity, 0);
@@ -175,7 +194,7 @@ export function buildSurveyReport(s: SurveySettings, entries: LeakEntry[]): Surv
     openCount: leaks.filter((l) => l.entry.status === "Open").length,
     plannedCount: leaks.filter((l) => l.entry.status === "Planned").length,
     awaitingRetestCount: leaks.filter((l) => l.entry.status === "Awaiting Re-test").length,
-    verifiedClosedCount: leaks.filter((l) => l.entry.status === "Verified Closed").length,
+    verifiedClosedCount: leaks.filter((l) => l.verified !== null).length,
     failedRetestCount: leaks.filter((l) => l.entry.status === "Failed Re-test").length,
     calculationVersion: CALCULATION_VERSION,
     annualHours,

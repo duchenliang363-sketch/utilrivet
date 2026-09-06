@@ -172,11 +172,21 @@ export interface VerifiedResult {
   annualCostAvoided: number;
 }
 
+export interface StillLeakingMeasurement {
+  kind: "Re-tested / Reduced but Still Leaking";
+  baselineSCFM: number;
+  postRepairSCFM: number;
+  measuredReductionSCFM: number;
+  remainingSCFM: number;
+  remainingOpportunity: number;
+}
+
 export interface LeakComputed {
   entry: LeakEntry;
   baselineSCFM: number;
   estimated: EstimatedOpportunity;
   verified: VerifiedResult | null;
+  stillLeaking: StillLeakingMeasurement | null;
   hasEstimatedRepairCost: boolean;
   paybackMonths: number | null;
   actualPaybackMonths: number | null;

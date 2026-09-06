@@ -22,8 +22,12 @@ function hasCompleteRetest(retest: RetestRecord | null): boolean {
   );
 }
 
+export function meetsCloseCondition(retest: RetestRecord | null): boolean {
+  return Boolean(retest && retest.result === "Pass" && retest.postRepairFlow === 0);
+}
+
 export function canEnterVerifiedClosed(entry: LeakEntry): boolean {
-  return entry.status === "Awaiting Re-test" && hasCompleteRetest(entry.retest) && entry.retest!.result === "Pass";
+  return entry.status === "Awaiting Re-test" && hasCompleteRetest(entry.retest) && meetsCloseCondition(entry.retest);
 }
 
 export function applyPlan(entry: LeakEntry): LeakEntry {
@@ -64,6 +68,9 @@ export function applyRetest(entry: LeakEntry, retest: RetestRecord): LeakEntry {
   };
   if (!hasCompleteRetest(next)) throw new Error("Re-test record is incomplete.");
   if (next.result === "Pass") {
+    if (!meetsCloseCondition(next)) {
+      throw new Error("Verified Closed requires post-repair flow of 0.");
+    }
     return { ...entry, status: "Verified Closed", retest: next };
   }
   return { ...entry, status: "Failed Re-test", retest: next };

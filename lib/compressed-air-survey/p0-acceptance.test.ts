@@ -471,3 +471,151 @@ test("P0-7-7: full chain from new project through export never requires a spread
   assert.ok(exportProjectJson(store.getActive()!).includes("Verified Closed"));
   assert.ok(buildManagementReport(store.getActive()!, report).includes("Verified Result"));
 });
+
+// ─── Failed Re-test must not look closed ───────────────────
+
+function failedRetestLeak(over: Partial<LeakEntry> = {}): LeakEntry {
+  return leak({
+    tag: "L-FAIL",
+    baselineFlow: 10,
+    status: "Failed Re-test",
+    repair: { repairedBy: "J. Lee", repairDate: "2026-09-01", actionTaken: "Tightened", actualRepairCost: 20 },
+    retest: {
+      retestDate: "2026-09-03",
+      testedBy: "A. Chen",
+      method: "Ultrasonic instrument",
+      postRepairFlow: 8,
+      flowUnit: "SCFM",
+      result: "Fail",
+    },
+    ...over,
+  });
+}
+
+test("Failed Re-test is still leaking: not Verified Result and not Verified Closed", () => {
+  const s = settings({
+    hoursPerDay: 10,
+    daysPerYear: 200,
+    electricityRate: 0.10,
+    specificPower: 20,
+    controlAdjustmentFactor: 1,
+    savingsRealizationFraction: 1,
+  });
+  const failed = failedRetestLeak();
+  const closed = leak({
+    id: "closed",
+    tag: "L-OK",
+    baselineFlow: 10,
+    status: "Verified Closed",
+    repair: { repairedBy: "J. Lee", repairDate: "2026-09-01", actionTaken: "Replaced fitting", actualRepairCost: 40 },
+    retest: {
+      retestDate: "2026-09-02",
+      testedBy: "A. Chen",
+      method: "Flow meter",
+      postRepairFlow: 0,
+      flowUnit: "SCFM",
+      result: "Pass",
+    },
+  });
+  const c = computeLeak(failed, s);
+  assert.equal(c.verified, null);
+  assert.ok(c.stillLeaking);
+  assert.equal(c.stillLeaking.kind, "Re-tested / Reduced but Still Leaking");
+  assert.equal(c.stillLeaking.baselineSCFM, 10);
+  assert.equal(c.stillLeaking.postRepairSCFM, 8);
+  assert.equal(c.stillLeaking.measuredReductionSCFM, 2);
+  assert.equal(c.stillLeaking.remainingSCFM, 8);
+  assert.equal(c.stillLeaking.remainingOpportunity, 320);
+  assert.equal(c.inRepairQueue, true);
+
+  const report = buildSurveyReport(s, [failed, closed]);
+  assert.equal(report.summary.verifiedClosedCount, 1);
+  assert.equal(report.summary.failedRetestCount, 1);
+  assert.equal(report.summary.verifiedResultTotal, 400);
+  assert.equal(report.summary.remainingOpenOpportunity, 320);
+  assert.ok(report.queue.some((q) => q.computed.entry.tag === "L-FAIL"));
+  assert.ok(!report.queue.some((q) => q.computed.entry.tag === "L-OK"));
+});
+
+test("Failed Re-test outputs never say the leak is closed", () => {
+  const s = settings({ projectName: "Plant" });
+  const failed = failedRetestLeak();
+  const report = buildSurveyReport(s, [failed]);
+  const proj = project({ settings: s, leaks: [failed] });
+  const mgmt = buildManagementReport(proj, report);
+  const work = buildRepairWorkPack(proj, report);
+  const csv = exportRegisterCsv(report);
+  const start = mgmt.indexOf("L-FAIL");
+  const rest = start >= 0 ? mgmt.slice(start) : "";
+  const failSection = rest.split("\n\n")[0] ?? "";
+
+  assert.match(mgmt, /Still Leaking|still leaking|Failed Re-test/);
+  assert.doesNotMatch(failSection, /Verified Result/);
+  assert.doesNotMatch(failSection, /Verified Closed/);
+  assert.doesNotMatch(failSection, /measured post-repair closure/);
+  assert.doesNotMatch(mgmt, /Verified Result \(measured post-repair closure\)/);
+  const workItem = (work.split("1. L-FAIL")[1] ?? work).split("\n\n")[0] ?? "";
+  assert.match(work, /L-FAIL/);
+  assert.match(work, /still leaking|Still leaking|Failed Re-test/i);
+  assert.doesNotMatch(workItem, /Verified Result/);
+  assert.doesNotMatch(workItem, /Verified Closed/);
+  assert.doesNotMatch(workItem, /measured post-repair closure/);
+  const failCsv = csv.split("\n").find((line) => line.includes("L-FAIL")) ?? "";
+  const headers = csv.split("\n")[0].split(",");
+  const verifiedIdx = headers.indexOf("Verified Result");
+  const cells = failCsv.split(",");
+  assert.ok(verifiedIdx >= 0);
+  assert.equal(cells[verifiedIdx], "");
+});
+
+test("Verified Closed is refused when post-repair flow is not 0", () => {
+  const awaiting = applyRepairCompleted(applyPlan(leak()), {
+    repairedBy: "J. Lee",
+    repairDate: "2026-09-01",
+    actionTaken: "Tightened",
+    actualRepairCost: 20,
+  });
+  assert.throws(() =>
+    applyRetest(awaiting, {
+      retestDate: "2026-09-03",
+      testedBy: "A. Chen",
+      method: "Ultrasonic instrument",
+      postRepairFlow: 2,
+      flowUnit: "SCFM",
+      result: "Pass",
+    }),
+  );
+  const withFlow = {
+    ...awaiting,
+    retest: {
+      retestDate: "2026-09-03",
+      testedBy: "A. Chen",
+      method: "Ultrasonic instrument" as const,
+      postRepairFlow: 2,
+      flowUnit: "SCFM" as const,
+      result: "Pass" as const,
+    },
+  };
+  assert.equal(canEnterVerifiedClosed(withFlow), false);
+});
+
+test("demo Verified Closed leaks meet the zero post-repair close condition", () => {
+  const demo = buildDemoProject();
+  const closed = demo.leaks.filter((l) => l.status === "Verified Closed");
+  assert.ok(closed.length >= 1);
+  for (const entry of closed) {
+    assert.ok(entry.retest);
+    assert.equal(entry.retest!.result, "Pass");
+    assert.equal(entry.retest!.postRepairFlow, 0);
+  }
+  const report = buildSurveyReport(demo.settings, demo.leaks);
+  const failed = report.leaks.filter((l) => l.entry.status === "Failed Re-test");
+  assert.ok(failed.length >= 1);
+  for (const l of failed) {
+    assert.equal(l.verified, null);
+    assert.ok(l.stillLeaking);
+    assert.equal(l.inRepairQueue, true);
+  }
+  assert.equal(report.summary.verifiedClosedCount, closed.length);
+  assert.equal(report.summary.verifiedResultTotal > 0, true);
+});

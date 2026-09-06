@@ -64,6 +64,9 @@ export function exportRegisterCsv(report: SurveyReport): string {
     "Verified Result",
     "Verified Closed SCFM",
     "Post-repair Flow",
+    "Measured Flow Reduction",
+    "Remaining Flow",
+    "Remaining Estimated Opportunity",
     "Estimated Repair Cost",
     "Actual Repair Cost",
     "Repaired By",
@@ -102,6 +105,9 @@ export function exportRegisterCsv(report: SurveyReport): string {
       l.verified ? l.verified.annualCostAvoided.toFixed(2) : "",
       l.verified ? l.verified.closedSCFM : "",
       e.retest ? e.retest.postRepairFlow : "",
+      l.stillLeaking ? l.stillLeaking.measuredReductionSCFM : "",
+      l.stillLeaking ? l.stillLeaking.remainingSCFM : "",
+      l.stillLeaking ? l.stillLeaking.remainingOpportunity.toFixed(2) : "",
       e.estimatedRepairCost ?? "",
       e.repair?.actualRepairCost ?? "",
       e.repair?.repairedBy ?? "",
@@ -127,8 +133,8 @@ export function buildRepairWorkPack(project: SurveyProject, report: SurveyReport
     `Survey date: ${project.settings.surveyDate || "—"}`,
     `Calculation version: ${CALCULATION_VERSION}`,
     "",
-    "This pack lists leaks currently in the repair queue.",
-    "Figures below are Estimated Opportunity unless a Verified Result exists.",
+    "This pack lists leaks currently in the repair queue, including Failed Re-test items that still need work.",
+    "Figures below are Estimated Opportunity. Verified Result is not used for leaks that are still leaking.",
     "",
   ];
 
@@ -150,8 +156,14 @@ export function buildRepairWorkPack(project: SurveyProject, report: SurveyReport
     lines.push(`   Operational impact: ${e.operationalImpact}`);
     lines.push(`   Urgency: ${e.urgency}`);
     lines.push(`   Estimated Opportunity: ${money(item.computed.estimated.opportunity)} / year`);
-    if (item.computed.verified) {
-      lines.push(`   Verified Result: ${money(item.computed.verified.annualCostAvoided)} / year`);
+    if (item.computed.stillLeaking) {
+      const sl = item.computed.stillLeaking;
+      lines.push(`   Status note: Failed Re-test — still leaking, still in the repair queue`);
+      lines.push(`   Baseline flow: ${num(sl.baselineSCFM)} SCFM`);
+      lines.push(`   Post-repair flow: ${num(sl.postRepairSCFM)} SCFM`);
+      lines.push(`   Measured flow reduction: ${num(sl.measuredReductionSCFM)} SCFM`);
+      lines.push(`   Remaining flow: ${num(sl.remainingSCFM)} SCFM`);
+      lines.push(`   Remaining estimated opportunity: ${money(sl.remainingOpportunity)} / year`);
     }
     lines.push(`   Why this rank: ${item.whyAhead}`);
     lines.push("");
@@ -182,7 +194,7 @@ export function buildManagementReport(project: SurveyProject, report: SurveyRepo
     "",
     "These two figures are not interchangeable:",
     `  Estimated Opportunity (all leaks, baseline): ${money(sum.estimatedOpportunityTotal)} / year`,
-    `  Verified Result (measured post-repair closure): ${money(sum.verifiedResultTotal)} / year`,
+    `  Verified Result (Verified Closed only, post-repair flow = 0): ${money(sum.verifiedResultTotal)} / year`,
     "",
     `Remaining open opportunity (Open / Planned / Failed Re-test): ${money(sum.remainingOpenOpportunity)} / year`,
     `Awaiting re-test opportunity: ${money(sum.awaitingRetestOpportunity)} / year`,
@@ -201,10 +213,18 @@ export function buildManagementReport(project: SurveyProject, report: SurveyRepo
     lines.push(`  Estimated Opportunity: ${money(l.estimated.opportunity)} / year`);
     if (l.verified) {
       lines.push(
-        `  Verified Result: ${money(l.verified.annualCostAvoided)} / year (closed ${num(l.verified.closedSCFM)} SCFM; post-repair ${num(l.verified.postRepairSCFM)} SCFM)`,
+        `  Verified Result: ${money(l.verified.annualCostAvoided)} / year (Verified Closed; post-repair flow 0 SCFM)`,
       );
+    } else if (l.stillLeaking) {
+      const sl = l.stillLeaking;
+      lines.push(`  Re-tested / Reduced but Still Leaking`);
+      lines.push(`  Baseline flow: ${num(sl.baselineSCFM)} SCFM`);
+      lines.push(`  Post-repair flow: ${num(sl.postRepairSCFM)} SCFM`);
+      lines.push(`  Measured flow reduction: ${num(sl.measuredReductionSCFM)} SCFM`);
+      lines.push(`  Remaining flow: ${num(sl.remainingSCFM)} SCFM`);
+      lines.push(`  Remaining estimated opportunity: ${money(sl.remainingOpportunity)} / year`);
     } else {
-      lines.push("  Verified Result: not yet re-tested");
+      lines.push("  Re-test: not yet recorded");
     }
     lines.push("");
   }

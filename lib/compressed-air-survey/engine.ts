@@ -16,6 +16,7 @@ export type {
   RepairAccess,
   RepairRecord,
   RetestRecord,
+  StillLeakingMeasurement,
   SuggestedAction,
   SurveyProject,
   SurveyReport,
@@ -46,7 +47,7 @@ export {
   validateSurvey,
 } from "./calc.ts";
 
-export { applyPlan, applyRepairCompleted, applyRetest, canEnterVerifiedClosed, returnFailedToQueue } from "./status.ts";
+export { applyPlan, applyRepairCompleted, applyRetest, canEnterVerifiedClosed, meetsCloseCondition, returnFailedToQueue } from "./status.ts";
 export { explainWhyAhead, rankRepairQueue } from "./queue.ts";
 export {
   MemoryStore,

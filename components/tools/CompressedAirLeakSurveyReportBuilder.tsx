@@ -641,6 +641,11 @@ export default function CompressedAirLeakSurveyReportBuilder() {
                         <span>Access: {e.repairAccess}</span>
                         <span>Estimated Opportunity: {formatCurrency(item.computed.estimated.opportunity)}</span>
                         <span>Payback: {item.computed.paybackMonths === null ? "—" : `${item.computed.paybackMonths.toFixed(1)} mo`}</span>
+                        {item.computed.stillLeaking && (
+                          <span>
+                            Still leaking — remaining {formatNumber(item.computed.stillLeaking.remainingSCFM)} SCFM · remaining opportunity {formatCurrency(item.computed.stillLeaking.remainingOpportunity)}
+                          </span>
+                        )}
                       </div>
                     </li>
                   );
@@ -660,15 +665,34 @@ export default function CompressedAirLeakSurveyReportBuilder() {
                   <span className="text-sm text-muted">{selected.exactLocation}</span>
                 </div>
                 {selectedComputed && (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="result-tile">
-                      <div className="result-tile-label">Estimated Opportunity</div>
-                      <div className="result-tile-value">{formatCurrency(selectedComputed.estimated.opportunity)}</div>
+                  <div className="space-y-3">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="result-tile">
+                        <div className="result-tile-label">Estimated Opportunity</div>
+                        <div className="result-tile-value">{formatCurrency(selectedComputed.estimated.opportunity)}</div>
+                      </div>
+                      <div className="result-tile">
+                        <div className="result-tile-label">
+                          {selectedComputed.verified
+                            ? "Verified Result"
+                            : selectedComputed.stillLeaking
+                              ? "Remaining estimated opportunity"
+                              : "Verified Result"}
+                        </div>
+                        <div className="result-tile-value">
+                          {selectedComputed.verified
+                            ? formatCurrency(selectedComputed.verified.annualCostAvoided)
+                            : selectedComputed.stillLeaking
+                              ? formatCurrency(selectedComputed.stillLeaking.remainingOpportunity)
+                              : "Not re-tested"}
+                        </div>
+                      </div>
                     </div>
-                    <div className="result-tile">
-                      <div className="result-tile-label">Verified Result</div>
-                      <div className="result-tile-value">{selectedComputed.verified ? formatCurrency(selectedComputed.verified.annualCostAvoided) : "Not re-tested"}</div>
-                    </div>
+                    {selectedComputed.stillLeaking && (
+                      <p className="text-xs text-muted">
+                        Re-tested / Reduced but Still Leaking — baseline {formatNumber(selectedComputed.stillLeaking.baselineSCFM)} SCFM · post-repair {formatNumber(selectedComputed.stillLeaking.postRepairSCFM)} SCFM · measured reduction {formatNumber(selectedComputed.stillLeaking.measuredReductionSCFM)} SCFM · remaining {formatNumber(selectedComputed.stillLeaking.remainingSCFM)} SCFM. This is not a Verified Result and is not Verified Closed.
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -782,7 +806,10 @@ export default function CompressedAirLeakSurveyReportBuilder() {
                 )}
 
                 {selected.status === "Verified Closed" && (
-                  <p className="text-sm text-muted">Closed after re-test. Verified Result is shown above and in exports. It is not mixed into Estimated Opportunity.</p>
+                  <p className="text-sm text-muted">Verified Closed: re-test recorded post-repair flow of 0. Verified Result is shown above and is not mixed into Estimated Opportunity.</p>
+                )}
+                {selected.status === "Failed Re-test" && (
+                  <p className="text-sm text-muted">Failed Re-test: still leaking and still in the repair queue. Re-test measurements above are not a Verified Result.</p>
                 )}
 
                 {selected.repair && (
@@ -857,7 +884,7 @@ export default function CompressedAirLeakSurveyReportBuilder() {
         <ol className="space-y-2 text-sm text-muted">
           <li>1. Set up the survey project. It saves automatically in this browser.</li>
           <li>2. Capture each leak with the handover fields, then review the register.</li>
-          <li>3. Use Estimated Opportunity for planning. Verified Result appears only after re-test.</li>
+          <li>3. Use Estimated Opportunity for planning. Verified Result appears only for Verified Closed leaks (post-repair flow of 0).</li>
           <li>4. Work the repair queue in the stated order, complete the repair, then re-test.</li>
           <li>5. Export the work pack, management report, CSV register, or JSON backup.</li>
         </ol>
