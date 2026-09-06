@@ -538,7 +538,7 @@ export const toolContents: Record<string, ToolContent> = {
       {
         question: "Does UtilRivet store my survey data?",
         answer:
-          "No. The tool runs entirely in your browser: survey data is never uploaded or sent to a server, and there is no account. It is also not stored on your device after the session ends, so print or copy the survey summary before closing the page.",
+          "The tool runs entirely in your browser: survey data is never uploaded or sent to a server, and there is no account. The active survey project is saved automatically in this browser so a refresh does not wipe the register. Export a JSON backup if you need a file copy, and do not rely on one device as the only copy.",
       },
       {
         question: "Does this replace a professional compressed air audit?",
