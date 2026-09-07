@@ -5,6 +5,7 @@ export interface ToolContent {
   seoSections: {
     title: string;
     content: string;
+    subsections?: { title: string; content: string }[];
     cta?: { label: string; slug: string };
   }[];
   faq: { question: string; answer: string }[];
@@ -211,7 +212,8 @@ export const toolContents: Record<string, ToolContent> = {
         content:
           "Manufacturers can reduce compressed air leakage through regular leak detection surveys using ultrasonic detectors, prompt repair of identified leaks, proper maintenance of fittings and hoses, installation of automatic drain valves, optimization of system pressure to match actual needs, and employee training on leak awareness. Many facilities find that implementing a systematic leak management program pays for itself within months through reduced energy costs.",
         cta: {
-          label: "Surveying a whole plant? Record multiple leaks and build a full survey report",
+          label:
+            "Need to manage a full compressed air leak survey? Use the Compressed Air Leak Survey Report Builder to register multiple leaks, prioritize repairs, track re-tests, and document verified results",
           slug: "compressed-air-leak-survey-report-builder",
         },
       },
@@ -464,43 +466,60 @@ export const toolContents: Record<string, ToolContent> = {
   "compressed-air-leak-survey-report-builder": {
     slug: "compressed-air-leak-survey-report-builder",
     subtitle:
-      "Record identified compressed air leaks, estimate air loss and annual energy cost, prioritize repairs, track completed fixes, and generate a survey-ready report.",
+      "Run and document a compressed air leak survey: leak register, repair queue, re-test, verified close, and a management-ready report.",
     metaDescription:
-      "Compressed air leak survey tool for recording identified leaks, estimating annual energy cost, prioritizing repairs, tracking fixes, and generating a report.",
+      "Run and document a compressed air leak survey. Log leaks, estimate losses, prioritize repairs, track re-tests, and generate a management-ready report.",
     seoSections: [
       {
-        title: "What is a compressed air leak survey?",
+        title: "How to Conduct a Compressed Air Leak Survey",
         content:
-          "A compressed air leak survey is a structured process for identifying and measuring leaks in the field, recording the findings, estimating energy loss and cost, prioritizing repairs, tracking completed work, and reporting the results. After leaks are identified during a field inspection or ultrasonic leak survey, this browser tool turns the measurements into a consistent survey record. UtilRivet does not detect compressed air leaks. Use measurements collected during your field inspection or ultrasonic leak survey.",
+          "A compressed air leak survey is a field workflow: find leaks, record them, repair, re-test, and report. This page is a browser tool for that workflow after leaks have been identified. UtilRivet does not detect compressed air leaks.",
+        subsections: [
+          {
+            title: "1. Define the survey scope",
+            content:
+              "Set the facility or area, survey date, operating hours, electricity rate, compressor specific power, and the control / realization assumptions used for planning estimates. Those settings apply to every leak in the survey project.",
+          },
+          {
+            title: "2. Detect and tag air leaks",
+            content:
+              "Locate leaks with a field inspection or ultrasonic leak survey, then assign a unique leak ID and record area, exact location, and access. UtilRivet does not detect compressed air leaks and does not replace an ultrasonic leak detector. Enter the flow the instrument or technician provided — this tool does not convert dB to CFM.",
+          },
+          {
+            title: "3. Build the leak register",
+            content:
+              "Record leak ID, area, estimated SCFM, status, access, notes, and annualized Estimated Opportunity. The register is the working leak log for the survey, not a detection instrument.",
+          },
+          {
+            title: "4. Prioritize repairs",
+            content:
+              "The repair queue is not ranked by payback alone. Order is urgency, then operational impact, then repair access (easier first), then annual cost opportunity, then payback when a repair cost exists. Each queued leak states why it sits there.",
+          },
+          {
+            title: "5. Re-test repaired leaks",
+            content:
+              "Completing a repair is not a Verified Result. Re-test the leak. If it still leaks, it is Failed Re-test / Still Leaking: it stays in the repair queue and is not Verified Closed.",
+          },
+          {
+            title: "6. Verify closed leaks and savings",
+            content:
+              "Verified Result is counted only when re-test confirms post-repair flow of 0 and the leak is Verified Closed. A reduced-but-still-leaking re-test is remaining opportunity, not verified savings.",
+          },
+          {
+            title: "7. Generate the survey report",
+            content:
+              "Export a Repair Work Pack, Management / Client Report, CSV register, or JSON backup for management review, repair follow-up, client communication, and documented close-out. The report is a planning and close-out record. It is not a certification, not a regulatory compliance filing, and not a complete compressed air system audit.",
+          },
+        ],
       },
       {
-        title: "What should a compressed air leak survey report include?",
+        title: "Compressed Air Leak Survey Report Example",
         content:
-          "A useful compressed air leak report documents the survey itself and every leak found: the survey date, facility or area, system operating assumptions, and for each leak a tag or ID, location, equipment, estimated flow, annual energy loss, annual cost, and repair status (Open, Planned, Awaiting Re-test, Verified Closed, or Failed Re-test). The summary should show Estimated Opportunity, Verified Result for closed leaks only, remaining open opportunity, and a repair queue ordered by urgency, operational impact, access, annual cost opportunity, and payback when a cost exists. This builder produces that structure and lets you export a work pack, management report, CSV register, or JSON backup.",
-      },
-      {
-        title: "How to use this compressed air leak survey tool",
-        content:
-          "1. Enter the survey settings: project, facility, date, operating hours, electricity rate, compressor specific power, control adjustment factor, and savings realization fraction. 2. Capture each leak with the handover fields. 3. Review the leak register. 4. Work the repair queue. 5. Record the repair, then re-test. Verified Closed requires post-repair flow of 0; Failed Re-test stays in the queue as still leaking. 6. Export the work pack, management report, CSV register, or JSON backup. Load the 21-leak demo project to see the full workflow.",
-      },
-      {
-        title: "How compressed air leak cost is estimated",
-        content:
-          "Each leak\u2019s flow rate is converted to SCFM, then to compressor power using specific power (kW / 100 SCFM), the compressor control adjustment factor, annual hours, electricity rate, and the savings realization fraction. That product is the Estimated Opportunity used for planning. Verified Result is counted only after a leak is Verified Closed (re-test post-repair flow of 0). The repair queue is ordered by urgency, then operational impact, repair access, annual cost opportunity, and payback when a repair cost exists — not by HIGH/MEDIUM/LOW payback badges. These are planning figures; actual losses depend on compressor performance, control strategy, and measured leak flow.",
-      },
-      {
-        title: "Example compressed air leak survey",
-        content:
-          "Example: a plant survey identifies several leaks across production areas. With 16 h/day, 250 days/year, $0.12/kWh, and 18 kW/100 SCFM, a 12 SCFM coupling is about $933 per year of Estimated Opportunity before the realization fraction. The 21-leak demo project includes Open, Planned, Awaiting Re-test, Verified Closed, and Failed Re-test records. The repair queue ranks those still open by urgency, operational impact, access, annual cost opportunity, then payback when a cost is entered. Load the 21-leak demo project in the workspace above.",
+          "Load the 21-leak demo project in the workspace above to see a sample compressed air leak survey. Demo Packaging Plant Leak Survey (Demo Manufacturing — Plant A) contains 21 tagged leaks with status 11 Open, 4 Planned, 2 Awaiting Re-test, 2 Verified Closed, and 2 Failed Re-test. Verified Closed leaks are L-005 (Verified Result $760 / year) and L-013 (Verified Result $173 / year). Combined Verified Result is $933 / year, counted for Verified Closed only (post-repair flow = 0). L-006 and L-017 are Failed Re-test — still leaking, with no Verified Result. L-017 is Re-tested / Reduced but Still Leaking (13 → 6 SCFM) and is not Verified Closed. The Management / Client Report shows the same survey summary, register, repair / re-test status, and verified-close figures.",
         cta: {
           label: "Need to estimate a single leak? Open the Compressed Air Leak Cost Calculator",
           slug: "compressed-air-leak-cost-calculator",
         },
-      },
-      {
-        title: "From leak survey to repair tracking",
-        content:
-          "Finding leaks is only the first step. A real leak program closes the loop: find, record, repair, re-test. Each leak carries a status — Open, Planned, Awaiting Re-test, Verified Closed, or Failed Re-test. Estimated Opportunity stays the planning figure. Verified Result is recorded only when re-test confirms post-repair flow of 0. A Failed Re-test (still leaking) returns to the repair queue and is not counted as Verified Closed. This closed-loop tracking is what turns a one-time inspection into an ongoing compressed air leak repair log.",
       },
     ],
     faq: [

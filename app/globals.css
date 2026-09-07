@@ -302,9 +302,17 @@ body {
   font-weight: 600;
   color: var(--color-foreground);
 }
+.seo-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
 @media (min-width: 640px) {
   .seo-content h2 {
     font-size: 28px;
+  }
+  .seo-content h3 {
+    font-size: 20px;
   }
 }
 .seo-content p {

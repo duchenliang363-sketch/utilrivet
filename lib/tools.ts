@@ -72,8 +72,8 @@ export const tools: Tool[] = [
   },
   {
     slug: "compressed-air-leak-survey-report-builder",
-    name: "Compressed Air Leak Survey Tool",
-    description: "Capture compressed air leaks, keep a local leak register, rank repairs, re-test, and export a survey report.",
+    name: "Compressed Air Leak Survey Report Builder",
+    description: "Run a compressed air leak survey: register leaks, prioritize repairs, track re-tests, and generate a management-ready survey report.",
     category: "Manufacturing & Energy",
     toolType: "Workflow",
     status: "active",
