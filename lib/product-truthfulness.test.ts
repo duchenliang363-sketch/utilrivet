@@ -77,7 +77,7 @@ test("Compressed Air Leak Survey is positioned as a survey workflow, not a detec
   assert.ok(content);
 
   const visibleCopy = JSON.stringify(content) + compressedAirSurveyComponent;
-  assert.equal(tool.name, "Compressed Air Leak Survey Report Builder");
+  assert.equal(tool.name, "Compressed Air Leak Survey & Report Tool");
   assert.equal(content.slug, compressedAirSurveySlug, "the indexed URL slug must stay unchanged");
   assert.match(visibleCopy, /UtilRivet does not detect compressed air leaks\./);
   assert.match(visibleCopy, /field inspection or ultrasonic leak survey/);
@@ -108,7 +108,7 @@ test("Compressed Air Leak Survey copy matches the verified-close workflow, not t
   assert.doesNotMatch(visibleCopy, /Complete Compressed Air Audit|Compressed Air System Audit Software/);
 });
 
-test("Compressed Air Leak Survey SEO surface names the report builder and keeps calculator as supporting", () => {
+test("Compressed Air Leak Survey SEO surface names the survey and report tool and keeps calculator as supporting", () => {
   const tool = getToolBySlug(compressedAirSurveySlug);
   const content = getToolContent(compressedAirSurveySlug);
   const calculator = getToolContent("compressed-air-leak-cost-calculator");
@@ -119,10 +119,12 @@ test("Compressed Air Leak Survey SEO surface names the report builder and keeps 
   const surveyCopy = JSON.stringify(content);
   const calculatorCopy = JSON.stringify(calculator);
 
-  assert.equal(tool.name, "Compressed Air Leak Survey Report Builder");
-  assert.match(content.subtitle, /leak register|repair queue|re-test|verified close/i);
-  assert.match(content.metaDescription ?? "", /compressed air leak survey/i);
-  assert.match(content.metaDescription ?? "", /management-ready report/i);
+  assert.equal(tool.name, "Compressed Air Leak Survey & Report Tool");
+  assert.match(content.subtitle, /record identified compressed air leaks/i);
+  assert.match(content.subtitle, /prioritize repairs/i);
+  assert.match(content.subtitle, /re-test/i);
+  assert.match(content.metaDescription ?? "", /compressed air leak survey report/i);
+  assert.match(content.metaDescription ?? "", /estimate annual energy cost/i);
   assert.doesNotMatch(content.metaDescription ?? "", /detect|certif|compliance|ultrasonic leak detector/i);
   assert.equal(content.seoSections[0]?.title, "How to Conduct a Compressed Air Leak Survey");
   assert.deepEqual(
@@ -140,7 +142,7 @@ test("Compressed Air Leak Survey SEO surface names the report builder and keeps 
   assert.equal(content.seoSections[1]?.title, "Compressed Air Leak Survey Report Example");
   assert.match(surveyCopy, /urgency, then operational impact, then repair access/i);
   assert.match(surveyCopy, /Verified Result is counted only when re-test confirms post-repair flow of 0/i);
-  assert.match(calculatorCopy, /Compressed Air Leak Survey Report Builder/);
+  assert.match(calculatorCopy, /Build a Compressed Air Leak Survey/);
   assert.match(calculatorCopy, /compressed-air-leak-survey-report-builder/);
   assert.doesNotMatch(surveyCopy, /measured post-repair closure/i);
   assert.doesNotMatch(surveyCopy, /Open \/ Planned \/ Repaired/);

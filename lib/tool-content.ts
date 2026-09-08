@@ -210,10 +210,9 @@ export const toolContents: Record<string, ToolContent> = {
       {
         title: "How Can Manufacturers Reduce Compressed Air Leakage?",
         content:
-          "Manufacturers can reduce compressed air leakage through regular leak detection surveys using ultrasonic detectors, prompt repair of identified leaks, proper maintenance of fittings and hoses, installation of automatic drain valves, optimization of system pressure to match actual needs, and employee training on leak awareness. Many facilities find that implementing a systematic leak management program pays for itself within months through reduced energy costs.",
+          "Manufacturers can reduce compressed air leakage through regular leak detection surveys using ultrasonic detectors, prompt repair of identified leaks, proper maintenance of fittings and hoses, installation of automatic drain valves, optimization of system pressure to match actual needs, and employee training on leak awareness. Many facilities find that implementing a systematic leak management program pays for itself within months through reduced energy costs. Surveying multiple leaks? Build a complete compressed air leak survey with a leak register, repair queue, re-test tracking, and report.",
         cta: {
-          label:
-            "Need to manage a full compressed air leak survey? Use the Compressed Air Leak Survey Report Builder to register multiple leaks, prioritize repairs, track re-tests, and document verified results",
+          label: "Build a Compressed Air Leak Survey",
           slug: "compressed-air-leak-survey-report-builder",
         },
       },
@@ -466,9 +465,9 @@ export const toolContents: Record<string, ToolContent> = {
   "compressed-air-leak-survey-report-builder": {
     slug: "compressed-air-leak-survey-report-builder",
     subtitle:
-      "Run and document a compressed air leak survey: leak register, repair queue, re-test, verified close, and a management-ready report.",
+      "Record identified compressed air leaks, estimate air loss and annual energy cost, prioritize repairs, track re-tests, and generate a survey-ready report.",
     metaDescription:
-      "Run and document a compressed air leak survey. Log leaks, estimate losses, prioritize repairs, track re-tests, and generate a management-ready report.",
+      "Record compressed air leaks, estimate annual energy cost, prioritize repairs, track re-tests, and generate a compressed air leak survey report with this free browser-based tool.",
     seoSections: [
       {
         title: "How to Conduct a Compressed Air Leak Survey",
@@ -517,7 +516,7 @@ export const toolContents: Record<string, ToolContent> = {
         content:
           "Load the 21-leak demo project in the workspace above to see a sample compressed air leak survey. Demo Packaging Plant Leak Survey (Demo Manufacturing — Plant A) contains 21 tagged leaks with status 11 Open, 4 Planned, 2 Awaiting Re-test, 2 Verified Closed, and 2 Failed Re-test. Verified Closed leaks are L-005 (Verified Result $760 / year) and L-013 (Verified Result $173 / year). Combined Verified Result is $933 / year, counted for Verified Closed only (post-repair flow = 0). L-006 and L-017 are Failed Re-test — still leaking, with no Verified Result. L-017 is Re-tested / Reduced but Still Leaking (13 → 6 SCFM) and is not Verified Closed. The Management / Client Report shows the same survey summary, register, repair / re-test status, and verified-close figures.",
         cta: {
-          label: "Need to estimate a single leak? Open the Compressed Air Leak Cost Calculator",
+          label: "Need to estimate the cost of a single leak? Use the Compressed Air Leak Cost Calculator",
           slug: "compressed-air-leak-cost-calculator",
         },
       },
@@ -527,6 +526,11 @@ export const toolContents: Record<string, ToolContent> = {
         question: "What is a compressed air leak survey?",
         answer:
           "It is a field inspection and follow-up workflow used to identify, tag, measure or estimate, and document compressed air leaks, then quantify estimated loss, prioritize repairs, track completed fixes, and report the results.",
+      },
+      {
+        question: "What should a compressed air leak survey include?",
+        answer:
+          "A useful survey covers the facility or area, operating assumptions, a tagged leak register with location and estimated flow, estimated air loss and annual energy cost, repair priority, repair status, re-test results, and a survey report. This tool records those items after leaks have already been identified in the field.",
       },
       {
         question: "What should a compressed air leak survey report include?",
@@ -549,9 +553,14 @@ export const toolContents: Record<string, ToolContent> = {
           "The tool converts the entered leak flow to estimated compressor power using your specific-power setting, multiplies it by annual operating hours, and applies your electricity rate. Results are planning estimates based on the measurements and assumptions you provide.",
       },
       {
-        question: "Which leaks should be repaired first?",
+        question: "How do you prioritize compressed air leak repairs?",
         answer:
           "The repair queue is ordered by urgency, then operational impact, repair access, annual cost opportunity, and payback when a repair cost exists. Each row states why it sits there. Payback is a later tie-breaker, not a HIGH/MEDIUM/LOW badge.",
+      },
+      {
+        question: "Should repaired compressed air leaks be re-tested?",
+        answer:
+          "Yes. Completing a repair is not the same as closing a leak. Re-test after the repair. If post-repair flow is 0, the leak can become Verified Closed. If it still leaks, it is Failed Re-test and returns to the repair queue.",
       },
       {
         question: "How often should compressed air leaks be surveyed?",
@@ -564,14 +573,14 @@ export const toolContents: Record<string, ToolContent> = {
           "Yes, for most survey workflows. Instead of maintaining a blank spreadsheet or paper leak log sheet, you enter leaks into a structured form and the tool calculates costs, priorities, and the summary automatically. If your team prefers spreadsheets, you can still copy the summary text into one.",
       },
       {
-        question: "Can this tool detect compressed air leaks?",
+        question: "Does UtilRivet detect compressed air leaks?",
         answer:
-          "No — UtilRivet does not physically detect leaks. Enter measurements collected during your field inspection, compressed air leak detection survey, or ultrasonic leak survey.",
+          "No. UtilRivet is not leak-detection hardware and does not replace an ultrasonic leak detector or field inspection. It is used to record identified leaks, estimate impact, manage repairs, re-test results, and produce survey/report records.",
       },
       {
         question: "Does this replace an ultrasonic leak detector?",
         answer:
-          "No. Use your inspection method or ultrasonic leak detector to locate and measure leaks in the field. UtilRivet starts with the data you enter and supports survey analysis, repair tracking, and reporting; it does not connect to or replace detection equipment.",
+          "No. Locate and measure leaks with your inspection method or ultrasonic leak detector first. Then enter those findings here for the leak register, repair queue, re-test tracking, and report.",
       },
       {
         question: "Does UtilRivet store my survey data?",

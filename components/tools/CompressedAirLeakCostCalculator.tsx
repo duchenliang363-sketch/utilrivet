@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Link from "next/link";
 import { calculateLeakCost, validateInputs, type FlowUnit, type LeakInputs, type LeakResult } from "@/lib/compressed-air/engine";
 import EmptyState from "@/components/EmptyState";
 
@@ -279,6 +280,12 @@ export default function CompressedAirLeakCostCalculator() {
           <div className="text-xs text-muted border-t border-border pt-4">
             This calculator provides an estimate for energy and maintenance planning. Actual savings may vary depending on compressor performance and operating conditions.
           </div>
+          <p className="text-sm leading-relaxed text-muted">
+            Surveying multiple leaks? Build a complete compressed air leak survey with a leak register, repair queue, re-test tracking, and report.{" "}
+            <Link href="/tools/compressed-air-leak-survey-report-builder" className="font-medium text-primary hover:underline">
+              Build a Compressed Air Leak Survey →
+            </Link>
+          </p>
         </div>
       )}
     </div>
