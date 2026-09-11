@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { tools, getToolBySlug, getRelatedTools } from "@/lib/tools";
 import { getToolContent } from "@/lib/tool-content";
+import { siteConfig } from "@/lib/config";
 import ToolPageClient from "./ToolPageClient";
 
 export function generateStaticParams() {
@@ -52,6 +53,63 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   }
 
   const relatedTools = getRelatedTools(slug);
+  const content = getToolContent(slug);
+  const description = content?.metaDescription || content?.subtitle || tool.description;
 
-  return <ToolPageClient tool={tool} relatedTools={relatedTools} />;
+  return (
+    <>
+      {slug === "compressed-air-leak-survey-report-builder" ? (
+        <SurveyStructuredData name={tool.name} slug={tool.slug} description={description} />
+      ) : null}
+      <ToolPageClient tool={tool} relatedTools={relatedTools} />
+    </>
+  );
+}
+
+function SurveyStructuredData({
+  name,
+  slug,
+  description,
+}: {
+  name: string;
+  slug: string;
+  description: string;
+}) {
+  const pageUrl = `${siteConfig.url}/tools/${slug}`;
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url },
+      { "@type": "ListItem", position: 2, name: "Tools", item: `${siteConfig.url}/tools` },
+      { "@type": "ListItem", position: 3, name, item: pageUrl },
+    ],
+  };
+  const application = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name,
+    url: pageUrl,
+    description,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web browser",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(application) }}
+      />
+    </>
+  );
 }
