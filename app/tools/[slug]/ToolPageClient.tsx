@@ -6,6 +6,7 @@ import { getToolContent } from "@/lib/tool-content";
 import ToolLayout from "@/components/ToolLayout";
 import FAQ from "@/components/FAQ";
 import RelatedTools from "@/components/RelatedTools";
+import RelatedGuides from "@/components/RelatedGuides";
 import PercentageCalculator from "@/components/tools/PercentageCalculator";
 import QuoteComparator from "@/components/tools/QuoteComparator";
 import BusinessDocumentDifferenceChecker from "@/components/tools/BusinessDocumentDifferenceChecker";
@@ -79,7 +80,12 @@ export default function ToolPageClient({ tool, relatedTools }: ToolPageClientPro
       subtitle={content.subtitle}
       seoContent={seoContent}
       faq={<FAQ items={content.faq} />}
-      related={<RelatedTools tools={relatedTools} />}
+      related={
+        <>
+          <RelatedTools tools={relatedTools} />
+          {content.relatedGuides ? <RelatedGuides guides={content.relatedGuides} /> : null}
+        </>
+      }
     >
       <ToolComponent />
     </ToolLayout>

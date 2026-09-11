@@ -9,6 +9,7 @@ export interface ToolContent {
     cta?: { label: string; slug: string };
   }[];
   faq: { question: string; answer: string }[];
+  relatedGuides?: { href: string; title: string; description: string }[];
 }
 
 export const toolContents: Record<string, ToolContent> = {
@@ -215,6 +216,13 @@ export const toolContents: Record<string, ToolContent> = {
           label: "Build a Compressed Air Leak Survey",
           slug: "compressed-air-leak-survey-report-builder",
         },
+      },
+    ],
+    relatedGuides: [
+      {
+        href: "/guides/how-to-calculate-compressed-air-leak-cost",
+        title: "How to Calculate Compressed Air Leak Cost",
+        description: "Leak flow to compressor power, annual kWh, and electricity cost, with a worked example.",
       },
     ],
     faq: [
@@ -519,6 +527,18 @@ export const toolContents: Record<string, ToolContent> = {
           label: "Need to estimate the cost of a single leak? Use the Compressed Air Leak Cost Calculator",
           slug: "compressed-air-leak-cost-calculator",
         },
+      },
+    ],
+    relatedGuides: [
+      {
+        href: "/guides/compressed-air-leak-survey-report-template",
+        title: "Compressed Air Leak Survey Report Template",
+        description: "Report fields for leak register, repair status, re-test, and management summary.",
+      },
+      {
+        href: "/guides/compressed-air-leak-survey-checklist",
+        title: "Compressed Air Leak Survey Checklist",
+        description: "What to prepare, capture at each leak, and finish after the walk and re-test.",
       },
     ],
     faq: [

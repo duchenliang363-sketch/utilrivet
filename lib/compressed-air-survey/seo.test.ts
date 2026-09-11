@@ -162,6 +162,7 @@ test("survey URL stays indexable in sitemap and robots", () => {
   const pageSource = readFileSync(new URL("../../app/tools/[slug]/page.tsx", import.meta.url), "utf8");
 
   assert.match(sitemapSource, /getActiveTools\(\)\.map/);
+  assert.match(sitemapSource, /getGuides\(\)/);
   assert.match(robotsSource, /allow: "\/"/);
   assert.doesNotMatch(robotsSource, /noindex|disallow: "\/tools"/);
   assert.match(layoutSource, /index: true/);
