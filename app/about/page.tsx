@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { siteConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "Learn about UtilRivet and our mission to build simple web tools for professionals.",
+  description:
+    "UtilRivet builds focused browser tools for surveys, calculations, and everyday work. No signup required.",
   alternates: {
     canonical: "/about",
   },
@@ -16,16 +18,36 @@ export default function AboutPage() {
 
       <div className="mt-6 space-y-4 text-sm sm:text-base text-muted leading-relaxed">
         <p>
-          {siteConfig.name} builds simple web tools for professionals, operators, small businesses, and people who need to get real work done.
+          {siteConfig.name} is a small set of web tools for people who already do the work: plant and
+          maintenance teams, buyers comparing quotes, and similar task-focused jobs. It is not a
+          leak detector, not a full compressed-air audit service, and not a law-firm system of
+          record.
         </p>
         <p>
-          Our tools are designed to be fast, focused, and easy to use. No sign-ups, no distractions — just open the tool and get the job done.
+          The current emphasis is practical compressed-air leak work after leaks have been found:
+          a survey register with repair and re-test tracking, a single-leak cost calculator, and
+          short field guides. Other tools on the site stay available; they are not the homepage
+          focus.
+        </p>
+        <p>Tools are built to stay out of the way:</p>
+        <ul className="list-disc space-y-1.5 pl-5">
+          <li>One job per tool</li>
+          <li>No account required</li>
+          <li>Runs in the browser where the task allows</li>
+          <li>Estimates are planning numbers, not meter readings or certifications</li>
+        </ul>
+        <p>
+          Survey projects, leak registers, and calculator inputs are stored in this browser
+          (localStorage) unless you export a file yourself. UtilRivet does not currently sync that
+          data to a server or between devices. Clearing site data, switching browsers, or opening
+          another computer starts from empty unless you import a backup you saved.
         </p>
         <p>
-          We believe good tools should stay out of your way. That is why we keep every interface clean, every calculation transparent, and every page lightweight.
-        </p>
-        <p>
-          If you have feedback or a tool suggestion, feel free to reach out through our contact page.
+          Questions go to the{" "}
+          <Link href="/contact" className="text-primary hover:text-primary-hover underline">
+            contact page
+          </Link>
+          .
         </p>
       </div>
     </main>

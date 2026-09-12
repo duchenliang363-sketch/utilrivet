@@ -123,6 +123,7 @@ test("survey tool only gains related-guide links; workflow source is unchanged t
   assert.ok(content);
   assert.ok(content.relatedGuides?.some((g) => g.href === "/guides/compressed-air-leak-survey-report-template"));
   assert.ok(content.relatedGuides?.some((g) => g.href === "/guides/compressed-air-leak-survey-checklist"));
+  assert.ok(content.relatedGuides?.some((g) => g.href === "/guides/how-to-calculate-compressed-air-leak-cost"));
   assert.match(surveyClientSource, /RelatedGuides/);
   assert.match(surveyPageSource, /canonical: `\/tools\/\$\{slug\}`/);
   assert.match(surveyComponent, /Leak Register|Repair Queue|Verified Closed|Failed Re-test/);

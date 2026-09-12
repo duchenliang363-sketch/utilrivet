@@ -27,7 +27,6 @@ export const tools: Tool[] = [
     category: "Business & Operations",
     toolType: "Comparison",
     status: "active",
-    featured: true,
   },
   {
     slug: "business-document-difference-checker",
@@ -77,6 +76,7 @@ export const tools: Tool[] = [
     category: "Manufacturing & Energy",
     toolType: "Workflow",
     status: "active",
+    featured: true,
   },
   {
     slug: "steam-trap-survey-report-builder",

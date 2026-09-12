@@ -6,12 +6,18 @@ export interface RelatedGuide {
   description: string;
 }
 
-export default function RelatedGuides({ guides }: { guides: RelatedGuide[] }) {
+export default function RelatedGuides({
+  guides,
+  heading = "Related guides",
+}: {
+  guides: RelatedGuide[];
+  heading?: string;
+}) {
   if (guides.length === 0) return null;
 
   return (
-    <section aria-label="Related guides" className="mt-12">
-      <h2 className="text-xl font-bold text-foreground">Related guides</h2>
+    <section aria-label={heading} className="mt-12">
+      <h2 className="text-xl font-bold text-foreground">{heading}</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {guides.map((guide) => (
           <Link

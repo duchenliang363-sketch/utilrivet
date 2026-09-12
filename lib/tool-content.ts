@@ -540,6 +540,11 @@ export const toolContents: Record<string, ToolContent> = {
         title: "Compressed Air Leak Survey Checklist",
         description: "What to prepare, capture at each leak, and finish after the walk and re-test.",
       },
+      {
+        href: "/guides/how-to-calculate-compressed-air-leak-cost",
+        title: "How to Calculate Compressed Air Leak Cost",
+        description: "Formula for one leak: flow to kW, annual kWh, and electricity cost.",
+      },
     ],
     faq: [
       {

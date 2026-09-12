@@ -16,7 +16,8 @@ export default function GuideLayout({ path, title, description, children }: Guid
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url },
-      { "@type": "ListItem", position: 2, name: title, item: pageUrl },
+      { "@type": "ListItem", position: 2, name: "Guides", item: `${siteConfig.url}/guides` },
+      { "@type": "ListItem", position: 3, name: title, item: pageUrl },
     ],
   };
   const article = {
@@ -36,6 +37,10 @@ export default function GuideLayout({ path, title, description, children }: Guid
       <nav aria-label="Breadcrumb" className="text-[13px] text-muted">
         <Link href="/" className="transition-colors hover:text-foreground">
           Home
+        </Link>
+        <span className="mx-1.5 text-gray-300">/</span>
+        <Link href="/guides" className="transition-colors hover:text-foreground">
+          Guides
         </Link>
         <span className="mx-1.5 text-gray-300">/</span>
         <span className="text-gray-600">{title}</span>
