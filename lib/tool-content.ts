@@ -622,12 +622,12 @@ export const toolContents: Record<string, ToolContent> = {
   "steam-trap-survey-report-builder": {
     slug: "steam-trap-survey-report-builder",
     subtitle:
-      "Record steam traps and their condition, estimate annual steam loss costs, prioritize repairs, and create a printable steam trap survey report.",
+      "Record steam trap identity, a human diagnosis, estimated steam loss, then close findings through Repair Queue, re-test, and Verified Closed. Not an automatic trap diagnostic.",
     seoSections: [
       {
         title: "What is a Steam Trap Survey?",
         content:
-          "A steam trap survey is a systematic inspection of every steam trap in a plant steam system. Each trap is identified, its condition is tested (Good, Leaking, Failed Open, Failed Closed, or Unknown), and the estimated steam loss is recorded. The survey turns individual trap findings into one total annual cost and a prioritized repair list — the foundation of practical steam system maintenance and energy management.",
+          "A steam trap survey is a systematic inspection of traps in a plant steam system. Each trap is identified, tested by a surveyor, and recorded with a human diagnosis (Good, Leaking, Failed Open, Failed Closed, Not Testable, Misapplied, or Other Issue) plus an estimated steam loss when relevant. UtilRivet manages the register, repair queue, re-test, and client report — it does not diagnose the trap for you.",
       },
       {
         title: "Why Do Failed Steam Traps Cost So Much?",
@@ -637,24 +637,24 @@ export const toolContents: Record<string, ToolContent> = {
       {
         title: "How Does This Tool Estimate Steam Loss Cost?",
         content:
-          "The estimated steam loss (in lb/hr or kg/hr) is entered from your inspection method or survey equipment — the tool does not pretend to simulate trap orifice flow. It multiplies the loss rate by annual operating hours to get pounds of steam lost per year, then values it at your steam cost per 1,000 lb. Traps marked Good, Failed Closed, or Unknown are never counted as recoverable savings automatically.",
+          "The estimated steam loss (lb/hr or kg/hr) is entered from your inspection method. The tool labels that input as measured, known, or assumed and multiplies rate × annual hours × steam cost per 1,000 lb. It does not compute loss from trap type, temperature, or ultrasound. Only Leaking and Failed Open count toward Estimated Opportunity. Verified Result appears only after a Pass re-test with remaining steam loss of 0.",
       },
       {
         title: "How Are Steam Trap Repairs Prioritized?",
         content:
-          "Using a transparent payback rule: repair cost divided by annual savings. Payback of 3 months or less is HIGH priority, 3–12 months is MEDIUM, over 12 months is LOW, and traps without a repair cost are Unrated. Failed Closed and Unknown traps are flagged as Inspection Required because they can create process problems even without a measurable steam loss.",
+          "Findings that need action enter the Repair Queue. Record Repair, Replace, Investigate, or Retest, then re-test. Queue order is estimated annual loss, then tag. Repair recorded is not the same as Verified Result.",
       },
       {
         title: "What Should a Steam Trap Survey Report Include?",
         content:
-          "A useful survey report includes the project and facility details, survey date and technician, operating assumptions, a trap inventory with ID, location, type, condition, loss and repair status, condition counts with a failure rate, total annual loss versus remaining open loss, and a prioritized repair list. This builder assembles all of these sections and lets you copy them as text or print them as a PDF.",
+          "A useful report includes project and site, trap inventory with diagnosis and status, Estimated Opportunity separate from Verified Result, Repair Queue work pack figures, Awaiting Re-test, Verified Closed, Failed Re-test, and remaining opportunity. Export Survey / Findings, Repair Work Pack, Management / Client Report, CSV, or JSON backup.",
       },
     ],
     faq: [
       {
         question: "What is a steam trap survey?",
         answer:
-          "It is a plant-wide inspection where each steam trap is identified, tested, and recorded with its condition and estimated steam loss. The results are summarized into total annual losses and a prioritized repair plan, and the survey is typically repeated on a regular schedule.",
+          "It is a plant-wide inspection where each steam trap is identified, tested by a surveyor, and recorded with a human diagnosis and estimated steam loss. This tool then tracks finding → repair/replace → re-test → verified close and produces client deliverables.",
       },
       {
         question: "Does the tool calculate steam loss from trap type and pressure?",
@@ -674,7 +674,7 @@ export const toolContents: Record<string, ToolContent> = {
       {
         question: "How should trap repairs be prioritized?",
         answer:
-          "By payback: repair cost divided by annual savings. Payback of 3 months or less is HIGH, 3–12 months is MEDIUM, over 12 months is LOW. Traps without a repair cost are Unrated, and Failed Closed or Unknown traps are marked Inspection Required.",
+          "Findings that need work go to the Repair Queue. After Repair or Replace you must re-test. Pass with remaining steam loss 0 is Verified Closed. Fail is Failed Re-test and stays in the queue — it is not verified savings.",
       },
       {
         question: "What units are supported?",
@@ -689,7 +689,7 @@ export const toolContents: Record<string, ToolContent> = {
       {
         question: "Is my survey data uploaded or stored?",
         answer:
-          "No. Everything runs locally in your browser. Survey data is kept only in the current page session — nothing is uploaded, stored, or sent to any server.",
+          "Survey data stays in this browser (localStorage) until you export JSON or CSV. Nothing is uploaded to a UtilRivet server.",
       },
       {
         question: "Does this replace a professional steam survey?",
