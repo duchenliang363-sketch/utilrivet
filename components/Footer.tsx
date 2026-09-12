@@ -3,6 +3,7 @@ import { siteConfig } from "@/lib/config";
 
 const links = [
   { href: "/tools", label: "Tools" },
+  { href: "/guides", label: "Guides" },
   { href: "/about", label: "About" },
   { href: "/privacy", label: "Privacy" },
   { href: "/terms", label: "Terms" },
@@ -28,7 +29,7 @@ export default function Footer() {
           </div>
 
           {/* Links */}
-          <nav className="grid grid-cols-2 gap-x-10 gap-y-3 sm:grid-cols-5 sm:gap-x-8">
+          <nav className="grid grid-cols-2 gap-x-10 gap-y-3 sm:grid-cols-3 lg:grid-cols-6 sm:gap-x-8">
             {links.map((link) => (
               <Link
                 key={link.href}

@@ -1,8 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getActiveTools } from "@/lib/tools";
+import { getActiveTools, getToolBySlug } from "@/lib/tools";
+import { getGuides } from "@/lib/guides";
 import TrustStrip from "@/components/TrustStrip";
 import CategorizedTools from "@/components/CategorizedTools";
+import ToolCard from "@/components/ToolCard";
+import RelatedGuides from "@/components/RelatedGuides";
 
 export const metadata: Metadata = {
   alternates: {
@@ -10,13 +13,19 @@ export const metadata: Metadata = {
   },
 };
 
+const SURVEY_SLUG = "compressed-air-leak-survey-report-builder";
+const COST_SLUG = "compressed-air-leak-cost-calculator";
+
 export default function HomePage() {
   const activeTools = getActiveTools();
   const featuredTool = activeTools.find((t) => t.featured);
+  const surveyTool = getToolBySlug(SURVEY_SLUG);
+  const costTool = getToolBySlug(COST_SLUG);
+  const guides = getGuides();
+  const categories = new Set(activeTools.map((tool) => tool.category)).size;
 
   return (
     <main>
-      {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-[760px] py-14 text-center sm:py-20">
           <h1 className="text-[32px] font-bold leading-tight tracking-tight text-foreground sm:text-[40px]">
@@ -39,15 +48,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trust Strip */}
       <TrustStrip />
 
-      {/* Featured Tool */}
       {featuredTool && (
         <section id="featured" className="mx-auto max-w-6xl scroll-mt-24 px-4 pt-14 sm:px-6 sm:pt-16 lg:px-8">
           <div className="rounded-2xl border border-primary-100 bg-accent-bg/60 p-6 sm:p-10">
             <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
-              {/* Left: info */}
               <div>
                 <div className="flex items-center gap-3">
                   <span className="text-[11px] font-semibold uppercase tracking-widest text-primary">
@@ -61,32 +67,56 @@ export default function HomePage() {
                   {featuredTool.name}
                 </h2>
                 <p className="mt-3 max-w-md text-sm leading-relaxed text-gray-600 sm:text-[15px]">
-                  {featuredTool.description} Find missing items, unclear scope and major differences
-                  before choosing a supplier.
+                  {featuredTool.description} Record tagged leaks, prioritize repairs, track re-tests,
+                  and keep estimated opportunity separate from verified savings.
                 </p>
                 <div className="mt-6">
                   <Link href={`/tools/${featuredTool.slug}`} className="btn btn-primary">
-                    Open Quote Comparator
+                    Open Compressed Air Leak Survey
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
                 </div>
               </div>
-
-              {/* Right: static product preview */}
               <FeaturedPreview />
             </div>
           </div>
         </section>
       )}
 
-      {/* Tool Categories + All Tools */}
+      {surveyTool && costTool && (
+        <section id="compressed-air" className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 sm:pt-16 lg:px-8">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="text-xl font-bold text-foreground">Compressed Air Tools</h2>
+            <Link href="/guides" className="text-sm font-medium text-primary hover:underline">
+              All compressed air guides
+            </Link>
+          </div>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+            Survey leaks after they have been found, estimate the cost of a single leak, or use the
+            field guides for the report, checklist, and cost formula.
+          </p>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <ToolCard tool={surveyTool} />
+            <ToolCard tool={costTool} />
+          </div>
+          <RelatedGuides
+            heading="Compressed Air Guides"
+            guides={guides.map((guide) => ({
+              href: guide.path,
+              title: guide.title,
+              description: guide.description,
+            }))}
+          />
+        </section>
+      )}
+
       <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6 sm:pt-16 lg:px-8">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-xl font-bold text-foreground">All Tools</h2>
           <span className="text-sm text-muted">
-            {activeTools.length} tools · 3 categories
+            {activeTools.length} tools · {categories} categories
           </span>
         </div>
         <div className="mt-5">
@@ -94,7 +124,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Why UtilRivet */}
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
         <h2 className="text-xl font-bold text-foreground">Built for getting work done.</h2>
         <div className="mt-6 grid gap-8 sm:grid-cols-3 sm:gap-6">
@@ -113,7 +142,8 @@ export default function HomePage() {
           <div>
             <h3 className="text-sm font-semibold text-foreground">Privacy-friendly</h3>
             <p className="mt-1.5 text-sm leading-relaxed text-muted">
-              Many tools process your data directly in the browser.
+              Current tools run in the browser. Survey and calculator data stay on this device unless
+              you export a file.
             </p>
           </div>
         </div>
@@ -122,52 +152,42 @@ export default function HomePage() {
   );
 }
 
-/**
- * Static, lightweight UI mock of the Quote Comparator result matrix.
- * Pure markup — no screenshots, no images.
- */
 function FeaturedPreview() {
   const rows = [
-    { label: "Total", values: ["$84,000", "$72,000", "$79,500"], best: 1 },
-    { label: "Lead Time", values: ["45 days", "60 days", "50 days"], best: 0 },
-    { label: "Warranty", values: ["24 months", "12 months", "18 months"], best: 0 },
-    { label: "Installation", values: ["Included", "Missing", "Unclear"], best: 0 },
+    { tag: "L-005", area: "Packaging", status: "Verified Closed", result: "$760 / yr" },
+    { tag: "L-012", area: "Compressor room", status: "Open", result: "Est. $1,040" },
+    { tag: "L-017", area: "Filling line", status: "Failed Re-test", result: "Not verified" },
+    { tag: "L-021", area: "Warehouse", status: "Awaiting Re-test", result: "—" },
   ];
 
   return (
     <div className="rounded-xl border border-border bg-background p-4 shadow-sm sm:p-5" aria-hidden="true">
       <div className="flex items-center justify-between border-b border-border pb-3">
-        <span className="text-xs font-semibold text-foreground">Apples-to-Apples Comparison</span>
-        <span className="text-[11px] text-gray-400">3 suppliers</span>
+        <span className="text-xs font-semibold text-foreground">Leak register</span>
+        <span className="text-[11px] text-gray-400">Find → Record → Repair → Re-test</span>
       </div>
       <div className="mt-3 space-y-0.5">
-        <div className="grid grid-cols-[1.1fr_1fr_1fr_1fr] gap-2 px-2 pb-2 text-[11px] font-semibold text-muted">
-          <span>Item</span>
-          <span className="text-right">Supplier A</span>
-          <span className="text-right">Supplier B</span>
-          <span className="text-right">Supplier C</span>
+        <div className="grid grid-cols-[0.7fr_1.1fr_1.2fr_0.9fr] gap-2 px-2 pb-2 text-[11px] font-semibold text-muted">
+          <span>Tag</span>
+          <span>Area</span>
+          <span>Status</span>
+          <span className="text-right">Result</span>
         </div>
         {rows.map((row) => (
           <div
-            key={row.label}
-            className="grid grid-cols-[1.1fr_1fr_1fr_1fr] gap-2 rounded-lg px-2 py-2 text-[12px] odd:bg-surface/70"
+            key={row.tag}
+            className="grid grid-cols-[0.7fr_1.1fr_1.2fr_0.9fr] gap-2 rounded-lg px-2 py-2 text-[12px] odd:bg-surface/70"
           >
-            <span className="text-gray-600">{row.label}</span>
-            {row.values.map((value, i) => (
-              <span
-                key={i}
-                className={`text-right tabular-nums ${
-                  i === row.best ? "font-semibold text-primary" : "text-foreground"
-                }`}
-              >
-                {value}
-              </span>
-            ))}
+            <span className="font-medium text-foreground">{row.tag}</span>
+            <span className="text-gray-600">{row.area}</span>
+            <span className="text-foreground">{row.status}</span>
+            <span className="text-right tabular-nums text-foreground">{row.result}</span>
           </div>
         ))}
       </div>
       <p className="mt-3 border-t border-border pt-3 text-[11px] text-muted">
-        Lowest price is not always the best quote — compare scope, not just totals.
+        Verified Result is counted only after a passing re-test. Failed Re-test is remaining
+        opportunity.
       </p>
     </div>
   );

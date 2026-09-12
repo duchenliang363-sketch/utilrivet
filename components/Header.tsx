@@ -30,6 +30,12 @@ export default function Header() {
               Tools
             </Link>
             <Link
+              href="/guides"
+              className="text-sm text-muted hover:text-foreground transition-colors"
+            >
+              Guides
+            </Link>
+            <Link
               href="/about"
               className="text-sm text-muted hover:text-foreground transition-colors"
             >
@@ -70,6 +76,13 @@ export default function Header() {
               onClick={() => setMenuOpen(false)}
             >
               Tools
+            </Link>
+            <Link
+              href="/guides"
+              className="flex min-h-11 items-center text-sm text-muted hover:text-foreground transition-colors"
+              onClick={() => setMenuOpen(false)}
+            >
+              Guides
             </Link>
             <Link
               href="/about"
