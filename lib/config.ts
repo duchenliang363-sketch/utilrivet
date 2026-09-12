@@ -5,5 +5,5 @@ export const siteConfig = {
   slogan: "Practical tools for real work.",
   description:
     "Simple, focused tools built to save time, reduce mistakes, and make everyday work easier.",
-  contactEmail: null as string | null,
+  contactEmail: "duchenliang311@gmail.com" as string | null,
 };
