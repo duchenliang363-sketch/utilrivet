@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { getActiveTools, getToolBySlug } from "./tools.ts";
 import { getToolContent } from "./tool-content.ts";
+import { siteConfig } from "./config.ts";
 
 const surveySlug = "compressed-air-leak-survey-report-builder";
 const calculatorSlug = "compressed-air-leak-cost-calculator";
@@ -41,10 +42,11 @@ test("guides are reachable from header, footer, homepage, and sitemap", () => {
   assert.match(sitemapSource, /\$\{baseUrl\}\/guides`/);
 });
 
-test("contact does not say coming soon and does not invent an email", () => {
+test("contact lists the founder-provided email and does not say coming soon", () => {
   assert.doesNotMatch(contactSource, /coming soon/i);
   assert.doesNotMatch(contactSource, /@utilrivet\.com/);
-  assert.match(contactSource, /A public contact email is not listed yet/);
+  assert.equal(siteConfig.contactEmail, "duchenliang311@gmail.com");
+  assert.match(contactSource, /siteConfig\.contactEmail/);
 });
 
 test("about states local-first storage without fake company claims", () => {
